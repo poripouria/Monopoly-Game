@@ -19,7 +19,7 @@ class Player:
         self.appearance = appearance
         self.money = money
         self.properties = []
-        self.properties_value = sum(prpt.price for prpt in self.properties)
+        self.properties_value = 0
         self.countries = []
         self.position = 0
         self.jail = False
@@ -37,6 +37,8 @@ class Player:
 
     def buy_property(self, property):
         self.properties.append(property)
+        for p in self.properties:
+            self.properties_value += p.price
         self.money -= property.price
         property.owner = self
         # TODO_: complete this
@@ -104,6 +106,6 @@ class Property:                                                     # Cities and
 
     def __repr__(self):
         if self.owner:
-            return (str(self.name) + ": " + str(self.owner.name))
+            return (str(self.name) + ": " + str(self.owner.name) + "\n")
         else:
-            return (str(self.name) + ": None")
+            return (str(self.name) + ": None" + "\n")

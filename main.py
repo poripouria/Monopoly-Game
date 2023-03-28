@@ -82,7 +82,7 @@ def play_monopoly(players_num=2, max_rounds=60, AI_Agent_Mode=False):
         players.append(Player(name))
 
         # ----------------  start game  ---------------- #
-    while input("") != "end":
+    while input("Inter \"c\" to continue or \"end\" to exit: ") != "end":
         for i in range(players_num):
             if players[i].is_bankrupt():
                 continue
@@ -96,33 +96,30 @@ def play_monopoly(players_num=2, max_rounds=60, AI_Agent_Mode=False):
                 players[i].move(roll_result)
                 print(f"{players[i].name} is on {properties[players[i].position].name}")
                 if properties[players[i].position].owner != None:
-                    print(f"{players[i].name} has to pay \${properties[players[i].position].rent} to {properties[players[i].position].owner.name}")
+                    print(f"{players[i].name} has to pay ${properties[players[i].position].rent} to {properties[players[i].position].owner.name}")
                     players[i].pay_rent(properties[players[i].position])
                 else:
-                    print(f"{players[i].name} can buy {properties[players[i].position].name} for {properties[players[i].position].price}")
-                    if input("Do you want to buy it? (y/n) ") == "y":
+                    print(f"{players[i].name} can buy {properties[players[i].position].name} for ${properties[players[i].position].price}")
+                    if input(f"Do you want to buy it (you have ${players[i].money})? (y/n) ") == "y":
                         if players[i].money < properties[players[i].position].price:
                             print("You don't have enough money to buy it") 
                         else:
                             players[i].buy_property(properties[players[i].position])
-                    elif input("Do you want to buy it? (y/n) ") == "n":
-                        pass
                     else:
-                        print("Wrong input. (Considered as 'n')")
                         pass
 
                 print("GAME STATE till now: ")
                 print(f"{players[i].name} has {players[i].doubles_rolls} doubles rolls")
-                print(f"{players[i].name} has {players[i].money} money left")
+                print(f"{players[i].name} has ${players[i].money} money left")
                 print(f"{players[i].name} has {players[i].properties} properties")
-                print(f"{players[i].name} has {players[i].properties_value} properties value")
+                print(f"{players[i].name} has ${players[i].properties_value} properties value")
                 print(f"{players[i].name} has {players[i].countries} countries")
                 print(f"{players[i].name} is on {players[i].position} position")
                 print(f"{players[i].name} is {'in' if players[i].jail else 'not in'} jail")
                 print(f"{players[i].name} has {players[i].jail_cards} jail cards")
                 print(f"{players[i].name} has {players[i].jail_turns} jail turns")
                 print(f"{players[i].name} is {'bankrupt' if players[i].is_bankrupt() else 'not bankrupt'}")
-                print(players, "\n", properties, "\n")
+                # print(players, "\n", properties, "\n")
 
 if __name__ == "__main__":
     play_monopoly()
