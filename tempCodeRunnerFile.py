@@ -1,1 +1,2 @@
-len
+
+    players = []

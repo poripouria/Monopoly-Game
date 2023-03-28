@@ -1,12 +1,4 @@
 import random
-import numpy as np
-import pandas as  pds
-
-property_list = []
-df = pd.read_excel("_Data/Properties-Detail.xlsx")
-for place in df["place"]:
-    property_list.append(place)
-#print(property_list)
 
 class DoubleDice():
     def __init__(self, sides=6):
@@ -19,11 +11,10 @@ class DoubleDice():
         self.current_rolled1 = random.randint(1, self.sides)
         self.current_rolled2 = random.randint(1, self.sides)
         self.rolled_sum = self.current_rolled1 + self.current_rolled2
-        # print("Dices roll: ", self.current_rolled1, self.current_rolled2)
         return self.current_rolled1, self.current_rolled2, self.rolled_sum
 
 class Player:
-    def __init__(self, name, appearance, money=1500):
+    def __init__(self, name, appearance=None, money=1500):
         self.name = name
         self.appearance = appearance
         self.money = money
@@ -34,12 +25,16 @@ class Player:
         self.jail = False
         self.jail_cards = 0
         self.jail_turns = 0
-        self.doubles = 0
+        self.doubles = False
         self.doubles_rolls = 0
         
         def move(self, steps):
-            self.position = (self.position + steps) % 40
- 
+            if self.position + steps >= 40:
+                self.money += 200
+                self.position = (self.position + steps) % 40
+            else:
+                self.position += steps
+
         def buy_property(self, property):
             self.properties.append(property)
             self.money -= property.price
@@ -67,6 +62,17 @@ class Player:
         def is_bankrupt(self):
             return self.money < 0
 
+    def __repr__(self):
+        return ("\n" + "Name: " + str(self.name) + 
+                "\n" + "Money: " + str(self.money) + 
+                "\n" + "Properties: " + str(self.properties) + 
+                "\n" + "Countries: " + str(self.countries) + 
+                "\n" + "Position: " + str(self.position) + 
+                "\n" + "Jail: " + str(self.jail) + 
+                "\n" + "Jail Cards: " + str(self.jail_cards) + 
+                "\n" + "Jail Turns: " + str(self.jail_turns) + 
+                "\n")
+
 class Property:                                                     # Cities and places
     def __init__(self, name, type, country, price, rent):
         self.name = name
@@ -80,8 +86,3 @@ class Property:                                                     # Cities and
         if self.country in self.owner.countries:
             self.price = 0.5 * cur_price
             self.rent = cur_rent * 1.5
-
-class Chance:
-    def __init__(self, name, action):
-        self.name = name
-        self.action = action   
