@@ -7,6 +7,7 @@ Description:
 
 Student Name & ID: Pouria Alimoradpor 9912035
 """
+import random
 import numpy as np
 import pandas as  pd
 from monopoly_classes import *
@@ -77,12 +78,12 @@ def play_monopoly(players_num=2, max_rounds=60, AI_Agent_Mode=False):
     players = []
     for i in range(players_num):
         name = input(f"Enter the name of player {i+1} : ")
-        if name == "AI" or name == "AI Agent":
+        if name == "AI" or name == "AI Agent" or name == "Agent":
             AI_Agent_Mode = True            
         players.append(Player(name))
 
         # ----------------  start game  ---------------- #
-    while input("Inter \"c\" to continue or \"end\" to exit: ") != "end":
+    while input("Inter \"c\" to continue or \"end\" to end this game: ") != "end":
         for i in range(players_num):
             if players[i].is_bankrupt():
                 continue
@@ -92,34 +93,79 @@ def play_monopoly(players_num=2, max_rounds=60, AI_Agent_Mode=False):
             else:
                 print(f"{players[i].name}'s turn")
                 d1, d2, roll_result = dices.roll_double_dice()
+                if d1 == d2:
+                    if players[i].doubles_rolls > 2:
+                        players[i].jail = True
+                        players[i].doubles_rolls = 0
+                        print(f"{players[i].name} went to jail becouse of 3 doubles rolls.")
+                        continue
+                    players[i].doubles_rolls += 1
                 print(f"{players[i].name} rolled {d1} and {d2}")
                 players[i].move(roll_result)
                 print(f"{players[i].name} is on {properties[players[i].position].name}")
-                if properties[players[i].position].owner != None:
-                    print(f"{players[i].name} has to pay ${properties[players[i].position].rent} to {properties[players[i].position].owner.name}")
-                    players[i].pay_rent(properties[players[i].position])
-                else:
-                    print(f"{players[i].name} can buy {properties[players[i].position].name} for ${properties[players[i].position].price}")
-                    if input(f"Do you want to buy it (you have ${players[i].money})? (y/n) ") == "y":
-                        if players[i].money < properties[players[i].position].price:
-                            print("You don't have enough money to buy it") 
-                        else:
-                            players[i].buy_property(properties[players[i].position])
+                
+                if properties[players[i].position].type == "city" or properties[players[i].position].type == "service_centers":
+                    if properties[players[i].position].owner != None and properties[players[i].position].owner != players[i]:
+                        print(f"{players[i].name} has to pay ${properties[players[i].position].rent} to {properties[players[i].position].owner.name}")
+                        players[i].pay_rent(properties[players[i].position])
                     else:
+                        print(f"{players[i].name} can buy {properties[players[i].position].name} for ${properties[players[i].position].price}")
+                        if input(f"Do you want to buy it (you have ${players[i].money})? (y/n) ") == "y":
+                            if players[i].money < properties[players[i].position].price:
+                                print("You don't have enough money to buy it") 
+                            else:
+                                players[i].buy_property(properties[players[i].position])
+                        else:
+                            pass
+                if properties[players[i].position].type == "stay_place":
+                    if properties[players[i].position].name == "Go (Collect $200)":
+                        players[i].money += 200
+                        print(f"{players[i].name} collected $200 from the bank for passing Go.")
+                    elif properties[players[i].position].name == "Jail":
+                        players[i].position = 10
+                        players[i].jail = True
+                        players[i].jail_turns += 1
+                        print(f"{players[i].name} went to jail.")
+                    elif properties[players[i].position].name == "Auction (Trade)":
                         pass
+                    elif properties[players[i].position].name == "Free Parking":
+                        pass
+                    elif properties[players[i].position].name == "Chance":
+                        pass
+                    elif properties[players[i].position].name == "Income Tax":
+                        players[i].money -= 0.1 * players[i].money
+                        print(f"{players[i].name} paied ${0.1 * players[i].money} to the bank for Income Tax!")
+                    elif properties[players[i].position].name == "Luxury Tax":
+                        players[i].money -= 200
+                        print(f"{players[i].name} paied $200 to the bank for Luxury Tax!")
+                    elif properties[players[i].position].name == "Treasure":
+                        rand_mony = random.randint(1, 10)*10
+                        print(f"{players[i].name} got ${rand_mony} from the bank!")
+                        players[i].money += rand_mony
+                if players[i].jail_turns > 0:
+                    players[i].jail_turns -= 1
+                    players[i].jail = False
 
                 print("GAME STATE till now: ")
-                print(f"{players[i].name} has {players[i].doubles_rolls} doubles rolls")
-                print(f"{players[i].name} has ${players[i].money} money left")
-                print(f"{players[i].name} has {players[i].properties} properties")
-                print(f"{players[i].name} has ${players[i].properties_value} properties value")
-                print(f"{players[i].name} has {players[i].countries} countries")
-                print(f"{players[i].name} is on {players[i].position} position")
-                print(f"{players[i].name} is {'in' if players[i].jail else 'not in'} jail")
-                print(f"{players[i].name} has {players[i].jail_cards} jail cards")
-                print(f"{players[i].name} has {players[i].jail_turns} jail turns")
-                print(f"{players[i].name} is {'bankrupt' if players[i].is_bankrupt() else 'not bankrupt'}")
+                print(f"| {players[i].name} has {players[i].doubles_rolls} doubles rolls")
+                print(f"| {players[i].name} has ${players[i].money} money left")
+                print(f"| {players[i].name} has {players[i].properties} properties")
+                print(f"| {players[i].name} has ${players[i].properties_value} properties value")
+                print(f"| {players[i].name} has {players[i].countries} countries")
+                print(f"| {players[i].name} is on {players[i].position} position")
+                print(f"| {players[i].name} is {'in' if players[i].jail else 'not in'} jail")
+                print(f"| {players[i].name} has {players[i].jail_cards} jail cards")
+                print(f"| {players[i].name} has {players[i].jail_turns} jail turns")
+                print(f"| {players[i].name} is {'bankrupt' if players[i].is_bankrupt() else 'not bankrupt'}")
                 # print(players, "\n", properties, "\n")
+
+            # TODO_: Correct this function to check if the game is over or not
+            if players[i].is_bankrupt():
+                print(f"{players[i].name} is bankrupt")
+                players_num -= 1
+                if players_num == 1:
+                    print(f"{players[i].name} is the winner")
+                    break
 
 if __name__ == "__main__":
     play_monopoly()

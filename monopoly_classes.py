@@ -37,8 +37,7 @@ class Player:
 
     def buy_property(self, property):
         self.properties.append(property)
-        for p in self.properties:
-            self.properties_value += p.price
+        self.properties_value += property.price
         self.money -= property.price
         property.owner = self
         # TODO_: complete this
@@ -106,6 +105,6 @@ class Property:                                                     # Cities and
 
     def __repr__(self):
         if self.owner:
-            return (str(self.name) + ": " + str(self.owner.name) + "\n")
+            return (str(self.name) + ": " + str(self.owner.name) + ": " + str(self.price) + ": " + str(self.rent))
         else:
-            return (str(self.name) + ": None" + "\n")
+            return (str(self.name) + ": None" + ": " + str(self.price) + ": " + str(self.rent))
