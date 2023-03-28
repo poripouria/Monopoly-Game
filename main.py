@@ -8,3 +8,7 @@ Description:
 Student Name & ID: Pouria Alimoradpor 9912035
 """
 
+from monopoly_classes import *
+
+def play_monopoly(players = 2):
+    pass
