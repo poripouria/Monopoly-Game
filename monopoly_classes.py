@@ -8,6 +8,7 @@ class Player:
         self.appearance = appearance
         self.money = money
         self.properties = []
+        self.properties_value = sum(prpt.price for prpt in self.properties)
         self.position = 0
         self.jail = False
         self.jail_cards = 0
@@ -31,12 +32,16 @@ class Player:
         def is_bankrupt(self):
             return self.money < 0
 
-class Property: #Cities and places
+class Property: # Cities and places
     def __init__(self, name, price, rent):
         self.name = name
         self.price = price
         self.rent = rent
         self.owner = None
+
+    def upgrade(self, name, cur_price, cur_rent):
+        self.price = 0.5 * cur_price
+        self.rent = cur_rent * 1.5
 class Chance:
     def __init__(self, name, action):
         self.name = name
