@@ -41,6 +41,21 @@ def AI_Agent(player):
                 else:
                     player.buy_property(property_place[player.position])
 """
+def display_game_state(players, properties=None):
+    for current_player in players:
+        print(f"| _____________{current_player.name}_____________")
+        print(f"| {current_player.name} has {current_player.doubles_rolls} doubles rolls")
+        print(f"| {current_player.name} has ${current_player.money} money left")
+        print(f"| {current_player.name} has {current_player.properties} properties")
+        print(f"| {current_player.name} has ${current_player.properties_value} properties value")
+        print(f"| {current_player.name} has {current_player.countries} countries")
+        print(f"| {current_player.name} is on {current_player.position} position")
+        print(f"| {current_player.name} is {'in' if current_player.jail else 'not in'} jail")
+        print(f"| {current_player.name} has {current_player.jail_turns} jail turns")
+        print(f"| {current_player.name} has {current_player.jail_cards} jail cards")
+        print(f"| {current_player.name} is {'bankrupt' if current_player.is_bankrupt() else 'not bankrupt'}")
+
+
 def monopoly_game(players, properties, players_num=2, AI_Agent_Mode=False, max_rounds=60):
         # ----------------      start game    ---------------- #
     round = 0
@@ -62,6 +77,8 @@ def monopoly_game(players, properties, players_num=2, AI_Agent_Mode=False, max_r
                 if players_num == 1:
                     print(f"{current_player.name} is the WINNER")
                     return
+            if current_player.jail:
+                break
             play_monopoly(current_player, players)
             if current_player.doubles:
                 play_monopoly(current_player, players)
@@ -82,6 +99,10 @@ def play_monopoly(current_player, players):
             current_player.jail = True
             current_player.doubles_rolls = 0
             print(f"{current_player.name} went to jail becouse of 3 doubles rolls.")
+            pass
+        if current_player.jail:
+            current_player.jail_turns -= 1
+            print(f"{current_player.name} is still in jail and couldn't roll again.")
             pass
         current_player.doubles = True
         current_player.doubles_rolls += 1
@@ -121,6 +142,7 @@ def play_monopoly(current_player, players):
             current_player.jail_turns += 1
             print(f"{current_player.name} went to jail.")
         elif properties[current_player.position].name == "Auction (Trade)":
+            print("Currently Auction (Trade) is not available!")
             pass
         elif properties[current_player.position].name == "Free Parking":
             pass
@@ -137,18 +159,8 @@ def play_monopoly(current_player, players):
             print(f"{current_player.name} got ${rand_mony} from the bank!")
             current_player.money += rand_mony
 
-    print("GAME STATE till now: ")
-    print(f"| {current_player.name} has {current_player.doubles_rolls} doubles rolls")
-    print(f"| {current_player.name} {'doubles' if current_player.jail else 'not doubles'} roll ({d1}, {d2})")
-    print(f"| {current_player.name} has ${current_player.money} money left")
-    print(f"| {current_player.name} has {current_player.properties} properties")
-    print(f"| {current_player.name} has ${current_player.properties_value} properties value")
-    print(f"| {current_player.name} has {current_player.countries} countries")
-    print(f"| {current_player.name} is on {current_player.position} position")
-    print(f"| {current_player.name} is {'in' if current_player.jail else 'not in'} jail")
-    print(f"| {current_player.name} has {current_player.jail_turns} jail turns")
-    print(f"| {current_player.name} has {current_player.jail_cards} jail cards")
-    print(f"| {current_player.name} is {'bankrupt' if current_player.is_bankrupt() else 'not bankrupt'}")
+    print(" _________________________ GAME PLAYERS STATUS TILL NOW: _________________________ ")
+    display_game_state(players)
 
     if current_player.jail_turns > 0:
         current_player.jail_turns -= 1
