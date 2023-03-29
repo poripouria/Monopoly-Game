@@ -85,6 +85,7 @@ def play_monopoly(players_num=2, AI_Agent_Mode=False, max_rounds=60):
                             else:
                                 players[i].buy_property(properties[players[i].position])
                         else:
+                            print(f"You didn't buy {properties[players[i].position].name}}")
                             pass
                 if properties[players[i].position].type == "stay_place":
                     if properties[players[i].position].name == "Go (Collect $200)":
@@ -161,20 +162,23 @@ for i in range(40):
                                 property_country[i], 
                                 property_price[i], 
                                 property_rent[i]))
+try:
+    if __name__ == "__main__":
+            # ----------------  defining players  ---------------- #
+        players_num = int(input(f"Enter the number of players (2 or 4): "))
+        if players_num == 2 or players_num == 4:
+            players = []
+            AI_Agent_Mode = False
+            for i in range(players_num):
+                name = input(f"Enter the name of player {i+1} : ")
+                if name == "AI" or name == "AI Agent" or name == "Agent":
+                    AI_Agent_Mode = True            
+                players.append(Player(name))
+        else:
+            raise Exception("Number of players must be 2 or 4!")
+        
+            # ----------------       play       ---------------- #
+        play_monopoly(players_num)
 
-if __name__ == "__main__":
-        # ----------------  defining players  ---------------- #
-    players_num = int(input(f"Enter the number of players (2 or 4): "))
-    if players_num == 2 or players_num == 4:
-        players = []
-        AI_Agent_Mode = False
-        for i in range(players_num):
-            name = input(f"Enter the name of player {i+1} : ")
-            if name == "AI" or name == "AI Agent" or name == "Agent":
-                AI_Agent_Mode = True            
-            players.append(Player(name))
-    else:
-        print("Number of players must be 2 or 4!")
-        pass
-        # ----------------       play       ---------------- #
-    play_monopoly(players_num)
+except Exception as err :
+    print(err)
