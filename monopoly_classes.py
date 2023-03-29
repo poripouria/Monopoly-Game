@@ -69,10 +69,11 @@ class Player:
             raise Exception("Something went wrong with the chance command")
 
     def buy_property(self, property):
-        self.properties.append(property)
-        self.properties_value += property.price
-        self.money -= property.price
-        property.owner = self
+        if property.owner != self:
+            self.properties.append(property)
+            self.properties_value += property.price
+            self.money -= property.price
+            property.owner = self
         # TODO_: complete this
         """same_owner = True
         group_properties = [prpt for prpt in self.properties if prpt.country == property.country]
