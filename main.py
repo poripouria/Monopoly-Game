@@ -13,34 +13,7 @@ import pandas as  pd
 from monopoly_classes import *
 from monopoly_AI_agent import *
 
-"""
-def AI_Agent(player):
-        if player.jail:
-            if player.jail_cards > 0:
-                player.jail_cards -= 1
-                player.jail = False
-            elif player.jail_turns < 3:
-                player.jail_turns += 1
-            else:
-                player.money -= 50
-                player.jail = False
-                player.jail_turns = 0
-        else:
-            if player.doubles >= 3:
-                player.jail = True
-                player.doubles = 0
-            else:
-                d1, d2, roll_result = dices.roll_double_dice()
-                player.move(roll_result)
-                if d1 == d2:
-                    player.doubles += 1
-                else:
-                    player.doubles = 0
-                if property_place[player.position].owner:
-                    player.pay_rent(property_place[player.position])
-                else:
-                    player.buy_property(property_place[player.position])
-"""
+
 def display_game_state(players, properties=None):
     for current_player in players:
         print(f"| _____________{current_player.name}_____________")
@@ -55,15 +28,14 @@ def display_game_state(players, properties=None):
         print(f"| {current_player.name} has {current_player.jail_cards} jail cards")
         print(f"| {current_player.name} is {'bankrupt' if current_player.is_bankrupt() else 'not bankrupt'}")
 
-
 def monopoly_game(players, properties, players_num=2, AI_Agent_Mode=False, max_rounds=60):
         # ----------------      start game    ---------------- #
     round = 0
     while round < max_rounds and input("Inter \"c\" to continue or \"end\" to end this game: ") != "end":
         # TODO_: Complete AI Agent Mode
         if AI_Agent_Mode:
-            print(f"AI Agent is playing for {p for p in players if p.name != 'AI'}")
-            pass
+            for i, p in enumerate(players):
+                print(f"Player {i+1}: Name: {p.name}, is {type(p).__name__}")
 
         for turn_counter in range(players_num):
             current_player = players[turn_counter]
@@ -202,8 +174,11 @@ try:
             for i in range(players_num):
                 name = input(f"Enter the name of player {i+1} : ")
                 if name == "AI":
-                    AI_Agent_Mode = True            
-                players.append(Player(name))
+                    AI_Agent_Mode = True    
+                    players.append(AI_Agent(name + "_" + str(i+1)))
+
+                else:
+                    players.append(Player(name))
         else:
             raise Exception("Number of players must be 2 or 4!")
         
