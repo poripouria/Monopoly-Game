@@ -1,5 +1,5 @@
 import numpy as np
-from monopoly_classes import DoubleDice, Player
+import Player
 
 class AI_Agent(Player):
     def __init__(self, name, appearance=None, money=1500, depth=5):

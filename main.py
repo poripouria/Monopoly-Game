@@ -10,23 +10,14 @@ Student Name & ID: Pouria Alimoradpor 9912035
 import random
 import numpy as np
 import pandas as  pd
-from monopoly_classes import *
-from monopoly_AI_agent import *
+import monopoly, player, AI_agent
 
 
 def display_game_state(players, properties=None):
-    for current_player in players:
-        print(f"| _____________{current_player.name}_____________")
-        print(f"| {current_player.name} has {current_player.doubles_rolls} doubles rolls")
-        print(f"| {current_player.name} has ${current_player.money} money left")
-        print(f"| {current_player.name} has {current_player.properties} properties")
-        print(f"| {current_player.name} has ${current_player.properties_value} properties value")
-        print(f"| {current_player.name} has {current_player.countries} countries")
-        print(f"| {current_player.name} is on {current_player.position} position")
-        print(f"| {current_player.name} is {'in' if current_player.jail else 'not in'} jail")
-        print(f"| {current_player.name} has {current_player.jail_turns} jail turns")
-        print(f"| {current_player.name} has {current_player.jail_cards} jail cards")
-        print(f"| {current_player.name} is {'bankrupt' if current_player.is_bankrupt() else 'not bankrupt'}")
+    for p in players:
+        p.print_player_status()
+    for p in properties:
+        p.print_property_status()
 
 def monopoly_game(players, properties, players_num=2, AI_Agent_Mode=False, max_rounds=60):
         # ----------------      start game    ---------------- #
