@@ -117,20 +117,45 @@ class Player:
         return (str(self.name))
 
 class AI_Agent(Player):
-    def __init__(self, name, appearance=None, money=1500, depth=5):
+    def __init__(self, name, depth=5, appearance=None, money=1500):
+        super().__init__(name, appearance, money)
+        self.depth = depth
+
+    def actions(self, dice1, dice2):
+        return ["", "", ""]
+        
+    def expectimax(self, dice1, dice2):
+        if self.depth == 0:
+            pass
+            
+    def evaluate(self):
+        return self.money
+    
+    def play(self, dice1, dice2):
+        best_value = -np.inf
+        best_action = None
+        for action in self.actions(dice1, dice2):
+            child_state = None #TODO_: complete this
+            value = self.expectimax(dice1, dice2)
+            if value > best_value:
+                best_value = value
+                best_action = action
+        return best_action
+
+"""
+class AI_Agent_ExpectiMax(Player):
+    def __init__(self, name, appearance=None, money=1500, dice1, dice2, depth=5):
         super().__init__(name, appearance, money)
         self.depth = depth
 
     def expectimax(self, state, depth):
         if depth == 0:
-            # evaluate the state statically
             return self.evaluate(state)
 
         if state.is_terminal:
             return state.utility(self)
 
         if state.current_player == self:
-            # maximize by picking the best action
             value = float('-inf')
             for action in state.actions():
                 child_state = state.result(action)
@@ -138,7 +163,6 @@ class AI_Agent(Player):
                 value = max(value, v)
             return value
         else:
-            # expected value by averaging over all possible actions
             value = 0
             count = 0
             for action in state.actions():
@@ -149,7 +173,6 @@ class AI_Agent(Player):
             return value / count
 
     def evaluate(self, state):
-        # basic static evaluation function that only considers the amount of money the player has
         return self.money
 
     def play(self, state):
@@ -162,7 +185,8 @@ class AI_Agent(Player):
                 best_value = value
                 best_action = action
         return best_action
-
+"""
+"""
 class AI_Agent_MiniMax(Player):
     def __init__(self, name, appearance=None, money=1500, depth=5):
         super().__init__(name, appearance, money)
@@ -199,21 +223,12 @@ class AI_Agent_MiniMax(Player):
 
 
     def move(self, player, properties, players):
-        """
-        Choose the optimal action for a player in a Monopoly game 
-        using the ExpectMinMax algorithm. Here the agent plays to 
-        maximize its profits.
-        """
         actions = self.get_legal_moves(player, properties)
         _, action = self.expectimax_decision(player, properties, players, 0, True)
         assert action in actions
         self.do_action(player, properties, action, players)
 
     def expectimax_decision(self, player, properties, players, depth, maximizing_player):
-        """
-        Returns the optimal action to take for a player using 
-        the Expectimax algorithm.
-        """
         if player.is_bankrupt():
             return -np.inf, None
         
@@ -246,9 +261,6 @@ class AI_Agent_MiniMax(Player):
             return v_exp, None
         
     def get_legal_moves(self, player, properties):
-        """
-        Returns all legal moves for a player in a Monopoly game.
-        """
         moves = []
         dices = DoubleDice()
         d1, d2, roll_result = dices.roll_double_dice()  
@@ -267,11 +279,6 @@ class AI_Agent_MiniMax(Player):
         return moves
 
     def do_action(self, player, properties, action, players):
-        """
-        Performs the given action for the agent. Here agent 
-        receives utility for moving to other tiles and receives 
-        rewards for collecting rent for its owned tiles.
-        """
         if action == 'use jail card' and player.jail_cards > 0:
             player.jail = False
             player.jail_cards -= 1
@@ -298,11 +305,6 @@ class AI_Agent_MiniMax(Player):
             raise Exception('Invalid action')
 
     def calc_board_utility(self, player, properties):
-        """
-        Evaluates the game utility for each player in a game. Here the agent 
-        evaluates the sum of its tile property values minus the sum of its 
-        players debts.
-        """
         utility = 0
         for p in properties:
             if p.owner == player:
@@ -311,19 +313,14 @@ class AI_Agent_MiniMax(Player):
         return utility
     
     def get_copy_properties(self, properties):
-        """
-        Returns a deepcopy of a list of properties.
-        """
         copy_properties = []
         for p in properties:
             copy_properties.append(p.copy())
         return copy_properties
 
     def get_copy_players(self, players):
-        """
-        Returns a deepcopy of a list of players.
-        """
         copy_players = []
         for player in players:
             copy_players.append(player.copy())
         return copy_players
+"""

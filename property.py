@@ -18,7 +18,7 @@ class Property:                                                     # Cities and
         print(f"| {self.name} is in {self.country}")
         print(f"| {self.name} has ${self.price} price")
         print(f"| {self.name} has ${self.rent} rent")
-        print(f"| {self.name} owner is {self.owner}")
+        print(f"| {self.name} owner is {(self.owner).__repr__()}")
 
     def __str__(self):
         return ("\n" + "TYPE: " + str(type(self).__name__) + 
@@ -32,9 +32,9 @@ class Property:                                                     # Cities and
 
     def __repr__(self):
         if self.owner:
-            return (str(self.name) + ": " + str(self.owner.name) + ": " + str(self.price) + ": " + str(self.rent))
+            return (str(self.name) + ": " + str(self.price) + ": " + str(self.rent))
         else:
-            return (str(self.name) + ": None" + ": " + str(self.price) + ": " + str(self.rent))
+            return (str(self.name) + ": " + str(self.price) + ": " + str(self.rent))
 
 #TODO_: complete this
 '''
