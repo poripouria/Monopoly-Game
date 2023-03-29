@@ -31,9 +31,42 @@ class Player:
     def move(self, steps):
         if self.position + steps >= 40:
             self.money += 200
+            print(f"{self.name} collected $200 from the bank for passing Go.")
             self.position = (self.position + steps) % 40
         else:
             self.position += steps
+            
+    def chance(self, players):
+        commands = [
+            "Go to Jail for 2 rounds",
+            "Pay $50 to all players",
+            "Give $20 from all players",
+            "Get 1 Jail-Free card",
+            "Roll the dice again",
+            "Null"]
+        command = random.choice(commands)
+        print("Command is: " + command)
+        if command == "Go to Jail for 2 rounds":
+            self.jail = True
+            self.jail_turns = 2
+        elif command == "Pay $50 to all players":
+            for player in players:
+                if player != self:
+                    player.money += 50
+                    self.money -= 50
+        elif command == "Give $20 from all players":
+            for player in players:
+                if player != self:
+                    player.money -= 20
+                    self.money += 20
+        elif command == "Get 1 Jail-Free card":
+            self.jail_cards += 1
+        elif command == "Roll the dice again":
+            self.doubles = True
+        elif command == "Null":
+            pass
+        else:
+            raise Exception("Something went wrong with the chance command")
 
     def buy_property(self, property):
         self.properties.append(property)
@@ -108,3 +141,21 @@ class Property:                                                     # Cities and
             return (str(self.name) + ": " + str(self.owner.name) + ": " + str(self.price) + ": " + str(self.rent))
         else:
             return (str(self.name) + ": None" + ": " + str(self.price) + ": " + str(self.rent))
+
+#TODO_: complete this
+'''
+def auction(player1, player2):
+    # Check if both players agree to exchange the cities
+    if players[0].agree_to_exchange(cities) and players[1].agree_to_exchange(cities):
+        
+        # Exchange the ownership of the cities
+        players[0].remove_city(cities[0])
+        players[1].add_city(cities[0])
+        players[1].remove_city(cities[1])
+        players[0].add_city(cities[1])
+        
+        print("The cities were exchanged between the players.")
+        
+    else:
+        print("The players did not agree to exchange the cities.")
+'''
