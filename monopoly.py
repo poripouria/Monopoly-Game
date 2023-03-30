@@ -62,8 +62,17 @@ class Monopoly():
                             if players_num == 1:
                                 print(f"{players} is the WINNER")
                                 return
-                        if current_player.jail:
-                            break
+                        if current_player.jail and current_player.jail_turns > 0:
+                            current_player.doubles = False
+                            current_player.doubles_rolls = 0
+                            current_player.jail_turns -= 1
+                            if current_player.jail_turns == 0:
+                                current_player.jail = False
+                        """if current_player.jail:
+                            current_player.jail_turns -= 1
+                            if current_player.jail_turns == 0:
+                                current_player.jail = False
+                            continue"""
                         self.play_monopoly(current_player)
                         if current_player.doubles:
                             self.play_monopoly(current_player)
@@ -127,6 +136,13 @@ class Monopoly():
                     else:
                         print(f"You didn't buy {self.properties[current_player.position].name}.")
                         pass
+                elif self.properties[current_player.position].owner == current_player:
+                    if input(f"Do you want to sell {self.properties[current_player.position].name} for {0.8 * self.properties[current_player.position].price}? (y/n) ") == "y":
+                        print(f"You soled {self.properties[current_player.position].name} for {0.8 * self.properties[current_player.position].price}.")
+                        current_player.sell_property(self.properties[current_player.position])
+                    else:
+                        print(f"You didn't sell {self.properties[current_player.position].name}.")
+                        pass
             if self.properties[current_player.position].type == "stay_place":
                 if self.properties[current_player.position].name == "Go (Collect $200)":
                     pass
@@ -137,7 +153,7 @@ class Monopoly():
                         print(f"{current_player.name} used a get out of jail free card.")
                     current_player.position = 10
                     current_player.jail = True
-                    current_player.jail_turns += 1
+                    current_player.jail_turns += 2
                     print(f"{current_player.name} went to jail.")
                 elif self.properties[current_player.position].name == "Auction (Trade)":
                     #TODO_: After compliting auction function, add it here
@@ -163,7 +179,7 @@ class Monopoly():
         print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
         self.display_game_state()
 
-        if current_player.jail_turns > 0:
+        if current_player.jail and current_player.jail_turns > 0:
             current_player.doubles = False
             current_player.doubles_rolls = 0
             current_player.jail_turns -= 1

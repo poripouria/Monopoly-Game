@@ -75,9 +75,11 @@ class Player:
 
     def sell_property(self, property):
         self.properties.remove(property)
+        self.properties_value -= property.price
+        self.money += 0.8 * property.price
+        property.owner = None
         if property.country in self.countries:
             self.countries.remove(property.country)
-        self.money += 0.8 * property.price
 
     def pay_rent(self, property):
         rent = property.rent
