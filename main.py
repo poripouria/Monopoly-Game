@@ -16,7 +16,7 @@ from Property import *
 
 try:
     if __name__ == "__main__":
-                # ----------------  defining properties  ---------------- #
+                # ---------------- defining properties ---------------- #
         df = pd.read_excel("_Data/Properties-Detail.xlsx")
         property_place = []
         for place_ in df["place"]:
@@ -40,7 +40,7 @@ try:
                                         property_country[i], 
                                         property_price[i], 
                                         property_rent[i]))
-            # ----------------  defining players  ---------------- #
+            # ----------------   defining players   ---------------- #
         players_num = int(input(f"Enter the number of players (2 or 4): "))
         if players_num == 2 or players_num == 4:
             players = []
@@ -50,13 +50,13 @@ try:
                 if name == "AI":
                     AI_Agent_Mode = True    
                     players.append(AI_Agent(name + "_" + str(i+1)))
-
                 else:
                     players.append(Player(name))
         else:
             raise Exception("Number of players must be 2 or 4!")
         
-            # ----------------       play       ---------------- #
-        monopoly_game(players, properties, players_num, AI_Agent_Mode)
+            # ----------------         play         ---------------- #
+        m = Monopoly(players, properties, players_num, AI_Agent_Mode)
+        m.start_game()
 except Exception as err :
     print(err)

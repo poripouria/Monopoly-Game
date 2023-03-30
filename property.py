@@ -13,7 +13,7 @@ class Property:                                                     # Cities and
             self.rent = cur_rent * 1.5
 
     def print_property_status(self):
-        print(f"| _____________{self.name}_____________")
+        print(f"| __________________________________")
         print(f"| {self.name} is {self.type}")
         print(f"| {self.name} is in {self.country}")
         print(f"| {self.name} has ${self.price} price")

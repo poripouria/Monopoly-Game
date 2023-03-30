@@ -54,7 +54,7 @@ class Player:
         elif command == "Null":
             pass
         else:
-            raise Exception("Something went wrong with the chance command")
+            raise Exception("Something went wrong with the CHANCE COMMAND.")
 
     def buy_property(self, property):
         if property.owner != self:
