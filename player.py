@@ -41,7 +41,7 @@ class Player:
             for player in players:
                 if player != self:
                     player.money += 50
-                    self.money -= 50
+                    self.money -= len(players) * 50 - 50
         elif command == "Give $20 from all players":
             for player in players:
                 if player != self:
