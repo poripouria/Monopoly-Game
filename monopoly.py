@@ -1,120 +1,141 @@
 import random
-
-class DoubleDice():
-    def __init__(self, sides=6):
-        self.sides = sides
-        self.current_rolled1 = 0
-        self.current_rolled2 = 0
-        self.rolled_sum = 0
-
-    def roll_double_dice(self):
-        self.current_rolled1 = random.randint(1, self.sides)
-        self.current_rolled2 = random.randint(1, self.sides)
-        self.rolled_sum = self.current_rolled1 + self.current_rolled2
-        return self.current_rolled1, self.current_rolled2, self.rolled_sum
+import numpy as np
 
 class Monopoly():
-    def __init__(self, players, properties, players_num=2, AI_Agent_Mode=False, max_rounds=40):
+    def __init__(self, players, properties, players_num=2, max_rounds=30, max_money=3500, AI_Agent_Mode=False):
         self.players = players
         self.properties = properties
         self.players_num = players_num
-        self.AI_Agent_Mode = AI_Agent_Mode
         self.max_rounds = max_rounds
+        self.max_money = max_money
+        self.AI_Agent_Mode = AI_Agent_Mode
         self.round = 0
         self.losers = []
         self.winner = None
 
-    def game_state(self):
-        pass
-
     def current_possible_moves(self):
         pass
 
-    def display_game_state(self, mode="players"):
+    def check_winner(self):
+        richest = None
+        richestmoney = -np.inf
+        for p in self.players:
+            if p.money == self.max_money:
+                self.winner = p
+            elif p.money > richestmoney:
+                richest = p
+                richestmoney = p.money
+        self.winner = richest
+
+    def display_game_state(self, mode="game"):
         match mode:
             case "properties":
-                print("                     +++++++++++++++++++++ PROPERTIES +++++++++++++++++++++ ")
+                print("               +++++++++++++++++++++ PROPERTIES +++++++++++++++++++++ ")
                 for p in self.properties:
                     p.print_property_status()
             case  "players":
-                print("                     +++++++++++++++++++++   PLAYERS  +++++++++++++++++++++ ")
+                print("               +++++++++++++++++++++   PLAYERS  +++++++++++++++++++++ ")
                 for p in self.players:
                     p.print_player_status()
+            case  "game":
+                if self.round == 0:
+                    print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
+                    print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
+                    print(f"PLAYERS ({self.players_num}):")    
+                    for i, p in enumerate(self.players):
+                        print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, type: {type(p).__name__}")
+
+                else:
+                    print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
+                    print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
+                    print(f"PLAYERS ({self.players_num}):")    
+                    for i, p in enumerate(self.players):
+                        print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, type: {type(p).__name__}", end=" ")
+                        if p == self.winner:
+                            print("(WINNER TILL NOW)", end=" ")
+                        print()
             case _:
                 raise Exception("Something went wrong in DISPLAYING GAME STATUS.")
 
     def start_game(self):
             # ----------------      start game    ---------------- #
         wtd = "c"
+        random.shuffle(self.players)
+        self.display_game_state()
         match wtd:
             case "c":
                 while self.round < self.max_rounds and wtd != "end":
-                    if self.AI_Agent_Mode:
-                        for i, p in enumerate(self.players):
-                            print(f"Player {i+1}: Name: {p.name}, is {type(p).__name__}")
-
                     for turn_counter in range(self.players_num):
+                    # ----------------  Check Current Player  ---------------- #
                         current_player = self.players[turn_counter]
                         if current_player.is_bankrupt():
                             print(f"{current_player.name} is bankrupt!")
                             self.players_num -= 1
                             self.players.remove(current_player)
+                            self.losers.append(current_player)
                             if self.players_num == 1:
-                                print(f"{self.players} is the WINNER")
+                                self.winner = players[0]
+                                print(f"#### WINNER: {self.winner}")
+                                print(f"#### LOSERS: {self.losers}")
                                 return
-                        if current_player.jail:
+                        if current_player.jail and current_player.jail_turns > 0:
+                            current_player.doubles = False
+                            current_player.doubles_rolls = 0
                             current_player.jail_turns -= 1
                             if current_player.jail_turns == 0:
                                 current_player.jail = False
                             continue
+                    # ----------------        Roll Dices      ---------------- #
+                        print(f"\n{current_player.name}'s turn")
+                        current_player.roll_dices()
                         self.play_monopoly(current_player)
                         if current_player.doubles:
+                            current_player.roll_dices()
                             self.play_monopoly(current_player)
                             if current_player.doubles:
+                                current_player.roll_dices()
                                 self.play_monopoly(current_player)
                                 if current_player.doubles:
+                                    current_player.roll_dices()
                                     self.play_monopoly(current_player)
+                    self.check_winner()
                     print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
                     wtd = input("*** GAME MENU \n" +
                                 "*** Inter \"c\" to continue \n" +
+                                "*** Inter \"g\" to see game status \n" +
                                 "*** Inter \"p\" to see properties status \n" +
                                 "*** Inter \"end\" to END this game: ")
                     if wtd == "p":
                         self.display_game_state("properties")
-                        wtd = "c"
+                        wtd = input("*** GAME MENU \n" +
+                                    "*** Inter \"c\" to continue \n" +
+                                    "*** Inter \"g\" to see game status \n" +
+                                    "*** Inter \"p\" to see properties status \n" +
+                                    "*** Inter \"end\" to END this game: ")
+                    if wtd == "g":
+                        self.display_game_state()
+                        wtd = input("*** GAME MENU \n" +
+                                    "*** Inter \"c\" to continue \n" +
+                                    "*** Inter \"g\" to see game status \n" +
+                                    "*** Inter \"p\" to see properties status \n" +
+                                    "*** Inter \"end\" to END this game: ")
+                    if self.round == self.max_rounds:
+                        self.check_winner()
+                        print(f"#### WINNER: {self.winner}")
+                        print(f"#### LOSERS: {self.losers}")
+                        return
                     self.round += 1
-            case "end":
-                print("Game END.")
-                return
+                if wtd == "end":
+                    print("Game END.")
+                    return
             case _:
                 wtd = "c"
 
     def play_monopoly(self, current_player):
-            # ----------------     Roll Dices   ---------------- #
-        print(f"\n{current_player.name}'s turn")
-        dices = DoubleDice()
-        d1, d2, roll_result = dices.roll_double_dice()
-        if d1 == d2:
-            if current_player.doubles_rolls > 2:
-                current_player.jail = True
-                current_player.doubles_rolls = 0
-                print(f"{current_player.name} went to jail becouse of 3 doubles rolls.")
-                pass
-            if current_player.jail:
-                current_player.jail_turns -= 1
-                print(f"{current_player.name} is still in jail and couldn't roll again.")
-                pass
-            current_player.doubles = True
-            current_player.doubles_rolls += 1
-        else:
-            current_player.doubles = False
-            current_player.doubles_rolls = 0
-        print(f"{current_player.name} rolled {d1} and {d2}")
-        current_player.move(roll_result)
+    # ----------------  Players Decision ---------------- #
         print(f"{current_player.name} is on {self.properties[current_player.position].name}")
-            # ----------------  Players Decision ---------------- #
         if type(current_player).__name__ == "AI_Agent":
-            current_player.play(d1, d2)
+            current_player.play()
         if type(current_player).__name__ == "Player":
             if self.properties[current_player.position].type == "city" or self.properties[current_player.position].type == "service_centers":
                 if self.properties[current_player.position].owner != None and self.properties[current_player.position].owner != current_player:
@@ -146,10 +167,11 @@ class Monopoly():
                         current_player.jail_cards -= 1
                         current_player.jail = False
                         print(f"{current_player.name} used a get out of jail free card.")
-                    current_player.position = 10
-                    current_player.jail = True
-                    current_player.jail_turns += 1
-                    print(f"{current_player.name} went to jail.")
+                    else:
+                        current_player.position = 10
+                        current_player.jail = True
+                        current_player.jail_turns += 1
+                        print(f"{current_player.name} went to jail.")
                 elif self.properties[current_player.position].name == "Auction (Trade)":
                     #TODO_: After compliting auction function, add it here
                     print("Currently Auction (Trade) is not available!")
@@ -172,13 +194,4 @@ class Monopoly():
                     raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
         print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
-        self.display_game_state()
-
-        if current_player.jail and current_player.jail_turns > 0:
-            current_player.doubles = False
-            current_player.doubles_rolls = 0
-            current_player.jail_turns -= 1
-            if current_player.jail_turns == 0:
-                current_player.jail = False
-        elif current_player.jail_turns == 0 and  current_player.doubles:
-                print(f"{current_player.name} rolled double ({d1}, {d2}), his/her turn again!")
+        self.display_game_state("players")

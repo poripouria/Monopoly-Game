@@ -16,6 +16,38 @@ class Player:
         self.doubles = False
         self.doubles_rolls = 0
         
+    def roll_dices(self):
+        d1 = random.randint(1, 6)
+        d2 = random.randint(1, 6)
+        roll_result = d1 + d2
+        if d1 == d2:
+            if self.jail:
+                self.jail_turns -= 1
+                if self.jail_turns == 0:
+                    self.jail = False
+                print(f"{self.name} is still in jail and couldn't roll again.")
+                pass
+            if self.doubles_rolls > 2:
+                if self.jail_cards > 0 and input(f"You rolled double more than 3 times (Jail Rule). Do you want to use your Jail-Free card? (y/n) ") == "y":
+                    self.jail_cards -= 1
+                    self.jail = False
+                    print(f"{self.name} used a get out of jail free card.")
+                else:
+                    self.position = 10
+                    self.jail = True
+                    self.jail_turns += 1
+                    print(f"{self.name} went to jail becouse of 3 doubles rolls.")
+                pass
+            self.doubles = True
+            self.doubles_rolls += 1
+            print(f"{self.name} rolled double ({d1}, {d2}),next turn would be his/her again!")
+        else:
+            self.doubles = False
+            self.doubles_rolls = 0
+            print(f"{self.name} rolled {d1} and {d2}")
+        self.move(roll_result)
+        return d1, d2, roll_result
+        
     def move(self, steps):
         if self.position + steps >= 40:
             self.money += 200
@@ -31,12 +63,21 @@ class Player:
             "Give $20 from all players",
             "Get 1 Jail-Free card",
             "Roll the dice again",
-            "Null"]
+            "Nothing..."]
         command = random.choice(commands)
         print("Command is: " + command)
         if command == "Go to Jail for 2 rounds":
-            self.jail = True
-            self.jail_turns = 2
+            if self.jail_cards > 0 and input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
+                self.jail_cards -= 1
+                self.position = 10
+                self.jail = True
+                self.jail_turns += 1
+                print(f"{self.name} used a get out of jail free card (1 round left).")
+            else:
+                self.position = 10
+                self.jail = True
+                self.jail_turns += 2
+                print(f"{self.name} went to jail for 2 rounds.")
         elif command == "Pay $50 to all players":
             for player in players:
                 if player != self:
@@ -51,7 +92,7 @@ class Player:
             self.jail_cards += 1
         elif command == "Roll the dice again":
             self.doubles = True
-        elif command == "Null":
+        elif command == "Nothing...":
             pass
         else:
             raise Exception("Something went wrong with the CHANCE COMMAND.")
@@ -126,203 +167,16 @@ class AI_Agent(Player):
     def actions(self, dice1, dice2):
         return ["", "", ""]
         
-    def expectimax(self, dice1, dice2):
+    def expectiminimax(self, dice1, dice2):
         if self.depth == 0:
             pass
             
     def evaluate(self):
-        return self.money
+        pass
     
     def play(self, dice1, dice2):
         best_value = -np.inf
         best_action = None
         for action in self.actions(dice1, dice2):
-            child_state = None #TODO_: complete this
-            value = self.expectimax(dice1, dice2)
-            if value > best_value:
-                best_value = value
-                best_action = action
+            pass
         return best_action
-
-"""
-class AI_Agent_ExpectiMax(Player):
-    def __init__(self, name, appearance=None, money=1500, dice1, dice2, depth=5):
-        super().__init__(name, appearance, money)
-        self.depth = depth
-
-    def expectimax(self, state, depth):
-        if depth == 0:
-            return self.evaluate(state)
-
-        if state.is_terminal:
-            return state.utility(self)
-
-        if state.current_player == self:
-            value = float('-inf')
-            for action in state.actions():
-                child_state = state.result(action)
-                v = self.expectimax(child_state, depth)
-                value = max(value, v)
-            return value
-        else:
-            value = 0
-            count = 0
-            for action in state.actions():
-                child_state = state.result(action)
-                v = self.expectimax(child_state, depth - 1)
-                value += v
-                count += 1
-            return value / count
-
-    def evaluate(self, state):
-        return self.money
-
-    def play(self, state):
-        best_value = float('-inf')
-        best_action = None
-        for action in state.actions():
-            child_state = state.result(action)
-            value = self.expectimax(child_state, self.depth)
-            if value > best_value:
-                best_value = value
-                best_action = action
-        return best_action
-"""
-"""
-class AI_Agent_MiniMax(Player):
-    def __init__(self, name, appearance=None, money=1500, depth=5):
-        super().__init__(name, appearance, money)
-        self.depth = depth
-
-    def minimax(self, state, depth, is_maximizing):
-        if depth == 0 or state.is_game_over():
-            return state.evaluate_state(), None
-
-        if is_maximizing:
-            best_value = -np.inf
-            best_move = None
-            for move in state.get_possible_moves(self):
-                new_state = state.get_new_state(move, self)
-                move_value, _ = self.minimax(new_state, depth - 1, False)
-                if move_value > best_value:
-                    best_value = move_value
-                    best_move = move
-            return best_value, best_move
-        else:
-            best_value = np.inf
-            best_move = None
-            for move in state.get_possible_moves(self):
-                new_state = state.get_new_state(move, self)
-                move_value, _ = self.minimax(new_state, depth - 1, True)
-                if move_value < best_value:
-                    best_value = move_value
-                    best_move = move
-            return best_value, best_move
-
-    def make_move(self, state):
-        _, best_move = self.minimax(state, self.depth, True)
-        return best_move
-
-
-    def move(self, player, properties, players):
-        actions = self.get_legal_moves(player, properties)
-        _, action = self.expectimax_decision(player, properties, players, 0, True)
-        assert action in actions
-        self.do_action(player, properties, action, players)
-
-    def expectimax_decision(self, player, properties, players, depth, maximizing_player):
-        if player.is_bankrupt():
-            return -np.inf, None
-        
-        if depth == self.depth:
-            return self.calc_board_utility(player, properties), None
-
-        if maximizing_player:
-            v_max = -np.inf
-            best_action = None
-            for action in self.get_legal_moves(player, properties):
-                copy_player = player.copy()
-                copy_properties = self.get_copy_properties(properties)
-                copy_players = self.get_copy_players(players)
-                self.do_action(copy_player, copy_properties, action, copy_players)
-                v, _ = self.expectimax_decision(copy_player, copy_properties, copy_players, depth + 1, False)
-                if v > v_max:
-                    v_max, best_action = v, action
-            return v_max, best_action
-            
-        else:
-            v_exp = 0
-            actions = self.get_legal_moves(player, properties)
-            for action in actions:
-                copy_player = player.copy()
-                copy_properties = self.get_copy_properties(properties)
-                copy_players = self.get_copy_players(players)
-                self.do_action(copy_player, copy_properties, action, copy_players)
-                v, _ = self.expectimax_decision(copy_player, copy_properties, copy_players, depth + 1, True)
-                v_exp += v / len(actions)
-            return v_exp, None
-        
-    def get_legal_moves(self, player, properties):
-        moves = []
-        dices = DoubleDice()
-        d1, d2, roll_result = dices.roll_double_dice()  
-        if player.jail and player.jail_cards > 0:
-            moves.append('use jail card')
-        elif player.jail:
-            moves.append('do nothing')
-        else:
-            moves.append('end turn')
-            if d1 == d2:
-                moves.append('roll dice again')
-                if player.doubles_rolls < 2:
-                    moves.append('move')
-            else:
-                moves.append('move')
-        return moves
-
-    def do_action(self, player, properties, action, players):
-        if action == 'use jail card' and player.jail_cards > 0:
-            player.jail = False
-            player.jail_cards -= 1
-        elif action == 'do nothing':
-            player.jail_turns += 1
-        elif action == 'end turn':
-            player.jail_turns = max(0, player.jail_turns - 1)
-        elif action == 'move':
-            dices = DoubleDice()
-            d1, d2, roll_result = dices.roll_double_dice()  
-            player.move(roll_result)
-            if properties[player.position].owner and properties[player.position].owner != player:
-                player.pay_rent(properties[player.position])
-            elif player.money > properties[player.position].price * 1.1:
-                player.buy_property(properties[player.position])
-        elif action == 'roll dice again':
-            player.move(d1+d2)
-            player.doubles_rolls += 1
-            if properties[player.position].owner and properties[player.position].owner != player:
-                player.pay_rent(properties[player.position])
-            elif player.money > properties[player.position].price * 1.1:
-                player.buy_property(properties[player.position])
-        else:
-            raise Exception('Invalid action')
-
-    def calc_board_utility(self, player, properties):
-        utility = 0
-        for p in properties:
-            if p.owner == player:
-                utility += p.price
-        utility -= player.get_debt()
-        return utility
-    
-    def get_copy_properties(self, properties):
-        copy_properties = []
-        for p in properties:
-            copy_properties.append(p.copy())
-        return copy_properties
-
-    def get_copy_players(self, players):
-        copy_players = []
-        for player in players:
-            copy_players.append(player.copy())
-        return copy_players
-"""
