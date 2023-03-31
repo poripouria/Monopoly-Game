@@ -56,7 +56,6 @@ try:
             raise Exception("Number of players must be 2, 3 or 4!")
         
     # ----------------         play        ---------------- #
-        m = Monopoly(players, properties, players_num, AI_Agent_Mode = AI_Agent)
-        m.start_game()
+        Monopoly(players, properties, players_num, AI_Agent_Mode = AI_Agent).start_game()
 except Exception as err :
     print(err)

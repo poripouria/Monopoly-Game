@@ -54,6 +54,7 @@ class Monopoly():
                         if p == self.winner:
                             print("(WINNER TILL NOW)", end=" ")
                         print()
+                    print()
             case _:
                 raise Exception("Something went wrong in DISPLAYING GAME STATUS.")
 
@@ -75,6 +76,7 @@ class Monopoly():
                             self.losers.append(current_player)
                             if self.players_num == 1:
                                 self.winner = players[0]
+                                print()
                                 print(f"#### WINNER: {self.winner}")
                                 print(f"#### LOSERS: {self.losers}")
                                 return
@@ -98,6 +100,7 @@ class Monopoly():
                                 if current_player.doubles:
                                     current_player.roll_dices()
                                     self.play_monopoly(current_player)
+                # ----------------    Check Game State    ---------------- #
                     self.check_winner()
                     print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
                     wtd = input("*** GAME MENU \n" +
@@ -109,18 +112,15 @@ class Monopoly():
                         self.display_game_state("properties")
                         wtd = input("*** GAME MENU \n" +
                                     "*** Inter \"c\" to continue \n" +
-                                    "*** Inter \"g\" to see game status \n" +
-                                    "*** Inter \"p\" to see properties status \n" +
                                     "*** Inter \"end\" to END this game: ")
-                    if wtd == "g":
+                    elif wtd == "g":
                         self.display_game_state()
                         wtd = input("*** GAME MENU \n" +
                                     "*** Inter \"c\" to continue \n" +
-                                    "*** Inter \"g\" to see game status \n" +
-                                    "*** Inter \"p\" to see properties status \n" +
                                     "*** Inter \"end\" to END this game: ")
                     if self.round == self.max_rounds:
                         self.check_winner()
+                        print()
                         print(f"#### WINNER: {self.winner}")
                         print(f"#### LOSERS: {self.losers}")
                         return
@@ -192,6 +192,6 @@ class Monopoly():
                     current_player.money += rand_mony
                 else:
                     raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
-
+    # ---------------- Show Game Status  ---------------- #
         print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
         self.display_game_state("players")
