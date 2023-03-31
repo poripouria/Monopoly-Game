@@ -11,8 +11,8 @@ class Player:
         self.countries = []
         self.position = 0
         self.jail = False
-        self.jail_cards = 0
         self.jail_turns = 0
+        self.jail_cards = 0
         self.doubles = False
         self.doubles_rolls = 0
         
