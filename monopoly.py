@@ -30,35 +30,34 @@ class Monopoly():
         self.losers.remove(self.winner)
 
     def display_game_state(self, mode="game"):
-        match mode:
-            case "properties":
-                print("               +++++++++++++++++++++ PROPERTIES +++++++++++++++++++++ ")
-                for p in self.properties:
-                    p.print_property_status()
-            case  "players":
-                print("               +++++++++++++++++++++   PLAYERS  +++++++++++++++++++++ ")
-                for p in self.players:
-                    p.print_player_status()
-            case  "game":
-                if self.round == 0:
-                    print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
-                    print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
-                    print(f"PLAYERS ({self.players_num}):")    
-                    for i, p in enumerate(self.players):
-                        print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, type: {type(p).__name__}")
+        if mode == "game":
+            if self.round == 0:
+                print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
+                print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
+                print(f"PLAYERS ({self.players_num}):")    
+                for i, p in enumerate(self.players):
+                    print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, type: {type(p).__name__}")
 
-                else:
-                    print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
-                    print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
-                    print(f"PLAYERS ({self.players_num}):")    
-                    for i, p in enumerate(self.players):
-                        print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, Currently on: ({self.properties[p.position].name}:{p.position})", end=" ")
-                        if p == self.winner:
-                            print("(WINNER TILL NOW)", end=" ")
-                        print()
+            else:
+                print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
+                print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
+                print(f"PLAYERS ({self.players_num}):")    
+                for i, p in enumerate(self.players):
+                    print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, Currently on: ({self.properties[p.position].name}:{p.position})", end=" ")
+                    if p == self.winner:
+                        print("(WINNER TILL NOW)")
                     print()
-            case _:
-                raise Exception("Something went wrong in DISPLAYING GAME STATUS.")
+        elif mode == "properties":
+            print("               +++++++++++++++++++++ PROPERTIES +++++++++++++++++++++ ")
+            for p in self.properties:
+                p.print_property_status()
+        elif mode == "players":
+            print("               +++++++++++++++++++++   PLAYERS  +++++++++++++++++++++ ")
+            for p in self.players:
+                p.print_player_status()
+        else:
+            raise Exception("Something went wrong in DISPLAYING GAME STATUS.")
+        print()
 
     def start_game(self):
     # ----------------      start game    ---------------- #
@@ -85,7 +84,7 @@ class Monopoly():
                     self.players.remove(current_player)
                     self.losers.append(current_player)
                     if self.players_num == 1:
-                        self.winner = players[0]
+                        self.winner = self.players[0]
                         print()
                         print(f"#### WINNER: {self.winner.name}")
                         print(f"#### LOSERS: {self.losers}")
