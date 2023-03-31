@@ -39,16 +39,16 @@ try:
                                         property_type[i], 
                                         property_country[i], 
                                         property_price[i], 
-                                        property_rent[i]))
+                                        property_rent[i], i))
     # ----------------   defining players  ---------------- #
         players_num = int(input(f"Enter the number of players (2 - 3 - 4): "))
         if players_num == 2 or players_num == 3 or players_num == 4:
             players = []
-            AI_Agent = False
+            AI_Mode = False
             for i in range(players_num):
                 name = input(f"Enter the name of player {i+1} (Any Name / AI): ")
                 if name == "AI":
-                    AI_Agent = True    
+                    AI_Mode = True    
                     players.append(AI_Agent(name + "_" + str(i+1)))
                 else:
                     players.append(Player(name))
@@ -56,6 +56,6 @@ try:
             raise Exception("Number of players must be 2, 3 or 4!")
         
     # ----------------         play        ---------------- #
-        Monopoly(players, properties, players_num, AI_Agent_Mode = AI_Agent).start_game()
+        Monopoly(players, properties, players_num, AI_Agent_Mode = AI_Mode).start_game()
 except Exception as err :
     print(err)

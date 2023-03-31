@@ -1,10 +1,11 @@
 class Property:                                                     # Cities and places
-    def __init__(self, name, type, country, price, rent):
+    def __init__(self, name, type, country, price, rent, index):
         self.name = name
         self.country = country
         self.type = type
         self.price = price
         self.rent = rent
+        self.index = index
         self.owner = None
 
     def upgrade(self, name, type, country, cur_price, cur_rent):    # Build Hotels and Apartments
@@ -13,7 +14,7 @@ class Property:                                                     # Cities and
             self.rent = cur_rent * 1.5
 
     def print_property_status(self):
-        print(f"| __________________________________")
+        print(f"| ________________{(self.index)}__________________")
         print(f"| {self.name} is {self.type}")
         print(f"| {self.name} is in {self.country}")
         print(f"| {self.name} has ${self.price} price")

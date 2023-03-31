@@ -37,7 +37,6 @@ class Monopoly():
                 print(f"PLAYERS ({self.players_num}):")    
                 for i, p in enumerate(self.players):
                     print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, type: {type(p).__name__}")
-
             else:
                 print("               +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
                 print(f"ROUND: {self.round+1} / {self.max_rounds}, MAX MONEY TO WIN: {self.max_money}")    
@@ -45,7 +44,7 @@ class Monopoly():
                 for i, p in enumerate(self.players):
                     print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, Currently on: ({self.properties[p.position].name}:{p.position})", end=" ")
                     if p == self.winner:
-                        print("(WINNER TILL NOW)")
+                        print("(WINNER TILL NOW)", end=" ")
                     print()
         elif mode == "properties":
             print("               +++++++++++++++++++++ PROPERTIES +++++++++++++++++++++ ")
@@ -65,11 +64,6 @@ class Monopoly():
         self.display_game_state()
         wtd = "c"
         while self.round < self.max_rounds and wtd != "end":
-            wtd = input("*** GAME MENU \n" +
-                        "*** Inter \"c\" to continue \n" +
-                        "*** Inter \"g\" to see game status \n" +
-                        "*** Inter \"p\" to see properties status \n" +
-                        "*** Inter \"end\" to END this game: ")
             if wtd == "g":
                 self.display_game_state()
             elif wtd == "p":
@@ -109,6 +103,11 @@ class Monopoly():
             self.check_winner()
             print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
             self.round += 1
+            wtd = input("*** GAME MENU \n" +
+                        "*** Inter \"c\" to continue \n" +
+                        "*** Inter \"g\" to see game status \n" +
+                        "*** Inter \"p\" to see properties status \n" +
+                        "*** Inter \"end\" to END this game: ")
         self.check_winner()
         print()
         print("Game END.")
