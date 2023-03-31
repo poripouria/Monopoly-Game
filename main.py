@@ -46,7 +46,7 @@ try:
             players = []
             AI_Agent = False
             for i in range(players_num):
-                name = input(f"Enter the name of player {i+1} : ")
+                name = input(f"Enter the name of player {i+1} (Any Name / AI): ")
                 if name == "AI":
                     AI_Agent = True    
                     players.append(AI_Agent(name + "_" + str(i+1)))

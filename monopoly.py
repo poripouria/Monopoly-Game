@@ -64,7 +64,6 @@ class Monopoly():
     # ----------------      start game    ---------------- #
         random.shuffle(self.players)
         self.display_game_state()
-        print()
         wtd = "c"
         while self.round < self.max_rounds and wtd != "end":
             wtd = input("*** GAME MENU \n" +
