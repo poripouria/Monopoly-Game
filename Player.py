@@ -21,23 +21,23 @@ class Player:
         d2 = random.randint(1, 6)
         roll_result = d1 + d2
         if d1 == d2:
-            if self.jail:
-                self.jail_turns -= 1
-                if self.jail_turns == 0:
-                    self.jail = False
-                print(f"{self.name} is still in jail and couldn't roll again.")
-                pass
             if self.doubles_rolls > 2:
                 if self.jail_cards > 0 and input(f"You rolled double more than 3 times (Jail Rule). Do you want to use your Jail-Free card? (y/n) ") == "y":
                     self.jail_cards -= 1
                     self.jail = False
                     print(f"{self.name} used a get out of jail free card.")
                 else:
-                    self.position = 10
+                    self.position = 9
                     self.jail = True
                     self.jail_turns += 1
                     print(f"{self.name} went to jail becouse of 3 doubles rolls.")
-                pass
+                return
+            if self.jail:
+                self.jail_turns -= 1
+                if self.jail_turns == 0:
+                    self.jail = False
+                print(f"{self.name} is still in jail and couldn't roll again.")
+                return
             self.doubles = True
             self.doubles_rolls += 1
             print(f"{self.name} rolled double ({d1}, {d2}),next turn would be his/her again!")
@@ -69,12 +69,12 @@ class Player:
         if command == "Go to Jail for 2 rounds":
             if self.jail_cards > 0 and input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
                 self.jail_cards -= 1
-                self.position = 10
+                self.position = 9
                 self.jail = True
                 self.jail_turns += 1
                 print(f"{self.name} used a get out of jail free card (1 round left).")
             else:
-                self.position = 10
+                self.position = 9
                 self.jail = True
                 self.jail_turns += 2
                 print(f"{self.name} went to jail for 2 rounds.")

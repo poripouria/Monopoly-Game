@@ -56,7 +56,7 @@ class Monopoly():
         print()
 
     def start_game(self):
-    # ----------------      start game    ---------------- #
+    # ----------------      start game    ---------------- #n
         random.shuffle(self.players)
         self.display_game_state()
         wtd = "c"
@@ -65,7 +65,6 @@ class Monopoly():
                 self.display_game_state()
             elif wtd == "p":
                 self.display_game_state("properties")
-            print()
             for turn_counter in range(self.players_num):
             # ----------------  Check Current Player  ---------------- #
                 current_player = self.players[turn_counter]
@@ -87,7 +86,7 @@ class Monopoly():
                     print(f"{current_player.name} is in JAIL and can't roll dices.")
                     if current_player.jail_turns == 0:
                         current_player.jail = False
-                    break
+                    continue
             # ----------------        Roll Dices      ---------------- #
                 print(f"\n{current_player.name}'s turn")
                 for i in range(4):
@@ -150,7 +149,10 @@ class Monopoly():
                         current_player.jail = False
                         print(f"{current_player.name} used a get out of jail free card.")
                     else:
-                        current_player.position = 10
+                        if current_player.doubles:
+                            current_player.doubles = False
+                            current_player.doubles_rolls = 0
+                        current_player.position = 9
                         current_player.jail = True
                         current_player.jail_turns += 1
                         print(f"{current_player.name} went to jail.")
@@ -169,7 +171,7 @@ class Monopoly():
                     current_player.money -= 200
                     print(f"{current_player.name} paied $200 to the bank for Luxury Tax!")
                 elif self.properties[current_player.position].name == "Treasure":
-                    rand_mony = random.randint(1, 10)*10
+                    rand_mony = random.randint(5, 20)*10
                     print(f"{current_player.name} got ${rand_mony} from the bank!")
                     current_player.money += rand_mony
                 else:
