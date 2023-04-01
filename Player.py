@@ -15,7 +15,7 @@ class Player:
         self.jail_cards = 0
         self.doubles = False
         self.doubles_rolls = 0
-        
+
     def roll_dices(self):
         d1 = random.randint(1, 6)
         d2 = random.randint(1, 6)
@@ -131,14 +131,14 @@ class Player:
     def is_bankrupt(self):
         return self.money < 0
 
-    def print_player_status(self):
+    def print_player_status(self, on_property):
         print(f"| _____________{self.name}_____________")
         print(f"| {self.name} has {self.doubles_rolls} doubles rolls")
         print(f"| {self.name} has ${self.money} money left")
         print(f"| {self.name} has {self.properties} properties")
         print(f"| {self.name} has ${self.properties_value} properties value")
         print(f"| {self.name} has {self.countries} countries")
-        print(f"| {self.name} is on {self.position} position")
+        print(f"| {self.name} is on {self.position} position ({on_property[self.position].name})")
         print(f"| {self.name} is {'in' if self.jail else 'not in'} jail")
         print(f"| {self.name} has {self.jail_turns} jail turns")
         print(f"| {self.name} has {self.jail_cards} jail cards")
@@ -164,17 +164,71 @@ class AI_Agent(Player):
         super().__init__(name, appearance, money)
         self.depth = depth
 
-    def actions(self, dice1, dice2):
-        return ["", "", ""]
-        
-    def expectiminimax(self, dice1, dice2):
-        if self.depth == 0:
-            pass
-            
-    def evaluate(self):
-        pass
-    
-    def play(self, dice1, dice2):
+    def make_decision(self, game_state):
+        """
+        The make_decision method implements the Expectiminimax algorithm for the AI Agent.
+        The Expectiminimax algorithm is a recursive algorithm used for decision making.
+        """
+        # create a list of all possible actions the agent can take
+        actions = self.get_possible_actions(game_state)
+
+        # calculate the expected value for each action using expectiminimax algorithm
+        action_values = []
+        for action in actions:
+            # apply the action to the game state to get the new state
+            new_state = self.get_next_state(game_state, action)
+
+            # calculate the expected value for the new state
+            value = self.expectimax(new_state, self.depth)
+
+            # add the action and its expected value to the list of action values
+            action_values.append((action, value))
+
+        # sort the actions by their expected values in descending order
+        sorted_actions = sorted(action_values, key=lambda x: x[1], reverse=True)
+
+        # choose the action with the highest expected value
+        best_action = sorted_actions[0][0]
+
+        # return the chosen action
+        return best_action
+
+    def expectimax(self, state, depth):
+        """
+        The expectimax method calculates the expected value of the given state using the Expectiminimax algorithm.
+        """
+        # check if the game is over or the maximum depth has been reached
+        if state.is_terminal() or depth == 0:
+            return self.evaluate_state(state)
+
+        # check if it's the AI Agent's turn
+        if state.get_current_player() == self:
+            # maximize the expected value
+            max_value = -inf
+            actions = self.get_possible_actions(state)
+            for action in actions:
+                new_state = self.get_next_state(state, action)
+                value = self.expectimax(new_state, depth - 1)
+                max_value = max(max_value, value)
+            return max_value
+
+        # otherwise, it's the chance player's turn
+        else:
+            # calculate the expected value
+            total_value = 0
+            probabilities = state.get_chance_probabilities()
+            for outcome, probability in probabilities.items():
+                new_state = self.get_next_state(state, outcome)
+                value = self.expectimax(new_state, depth - 1)
+                total_value += value * probability
+            return total_value
+
+    def evaluate_state(self, state):
+        """
+        The evaluate_state method evaluates the given state and returns a score.
+        """
+        # implement your evaluation function here
+        return random.randint(0, 100)
         best_value = -np.inf
         best_action = None
         for action in self.actions(dice1, dice2):

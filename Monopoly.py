@@ -13,9 +13,6 @@ class Monopoly():
         self.losers = []
         self.winner = None
 
-    def current_possible_moves(self):
-        pass
-
     def check_winner(self):
         richest = None
         richestmoney = -np.inf
@@ -53,7 +50,7 @@ class Monopoly():
         elif mode == "players":
             print("               +++++++++++++++++++++   PLAYERS  +++++++++++++++++++++ ")
             for p in self.players:
-                p.print_player_status()
+                p.print_player_status(self.properties)
         else:
             raise Exception("Something went wrong in DISPLAYING GAME STATUS.")
         print()
