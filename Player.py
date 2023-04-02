@@ -13,8 +13,66 @@ class Player:
         self.jail = False
         self.jail_turns = 0
         self.jail_cards = 0
+        self.dices = [0, 0]
         self.doubles = False
         self.doubles_rolls = 0
+        self.all_pussible_actions = ["buy", "sell", "use_jail_card", "trade", "nothing_just_stay"]
+
+
+    def play(self, property):
+        if property.type == "city" or property.type == "service_centers":
+            if property.owner != None and property.owner != self:
+                print(f"{self.name} has to pay ${property.rent} to {property.owner.name}")
+                self.pay_rent(property)
+            elif property.owner == None:
+                print(f"{self.name} can buy {property.name} for ${property.price}")
+                if input(f"Do you want to buy it (you have ${self.money})? (y/n) ") == "y":
+                    self.buy_property(property)
+                    print(f"You bought {property.name}.")
+                else:
+                    print(f"You didn't buy {property.name}.")
+            elif property.owner == self:
+                if input(f"Do you want to sell {property.name} for {0.8 * property.price}? (y/n) ") == "y":
+                    self.sell_property(property)
+                    print(f"You soled {property.name} for {0.8 * property.price}.")
+                else:
+                    print(f"You didn't sell {property.name}.")
+        if property.type == "stay_place":
+            if property.name == "Go (Collect $200)":
+                pass
+            elif property.name == "Jail":
+                if self.jail_cards > 0 and input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
+                    self.jail_cards -= 1
+                    self.jail = False
+                    print(f"{self.name} used a get out of jail free card.")
+                else:
+                    if self.doubles:
+                        self.doubles = False
+                        self.doubles_rolls = 0
+                    self.position = 9
+                    self.jail = True
+                    self.jail_turns += 1
+                    print(f"{self.name} went to jail.")
+            elif property.name == "Auction (Trade)":
+                #TODO_: After compliting auction function, add it here
+                print("Currently Auction (Trade) is not available!")
+                pass
+            elif property.name == "Free Parking":
+                print("Enjoy your free parking!")
+            elif property.name == "Chance":
+                self.chance(self.players)
+            elif property.name == "Income Tax":
+                print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
+                self.money -= 0.1 * self.money
+            elif property.name == "Luxury Tax":
+                self.money -= 200
+                print(f"{self.name} paied $200 to the bank for Luxury Tax!")
+            elif property.name == "Treasure":
+                rand_mony = random.randint(5, 20)*10
+                print(f"{self.name} got ${rand_mony} from the bank!")
+                self.money += rand_mony
+            else:
+                raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
     def roll_dices(self):
         d1 = random.randint(1, 6)
@@ -45,6 +103,8 @@ class Player:
             self.doubles = False
             self.doubles_rolls = 0
             print(f"{self.name} rolled {d1} and {d2}")
+        self.dices[0] = d1
+        self.dices[1] = d2
         self.move(roll_result)
         return d1, d2, roll_result
         
@@ -63,6 +123,7 @@ class Player:
             "Give $20 from all players",
             "Get 1 Jail-Free card",
             "Roll the dice again",
+            # f"Travel to {random.choice()}",
             "Nothing..."]
         command = random.choice(commands)
         print("Command is: " + command)
@@ -98,21 +159,23 @@ class Player:
             raise Exception("Something went wrong with the CHANCE COMMAND.")
 
     def buy_property(self, property):
-        if property.owner != self:
+        if property.price < self.money:
             self.properties.append(property)
             self.properties_value += property.price
             self.money -= property.price
             property.owner = self
-        # TODO_: complete this
-        """same_owner = True
-        group_properties = [prpt for prpt in self.properties if prpt.country == property.country]
-        for prpt in group_properties:
-            if prpt.owner != property.owner:
-                same_owner = False
-                break
-        if same_owner:
+            # TODO_: complete this
+            """same_owner = True
+            group_properties = [prpt for prpt in self.properties if prpt.country == property.country]
             for prpt in group_properties:
-                """
+                if prpt.owner != property.owner:
+                    same_owner = False
+                    break
+            if same_owner:
+                for prpt in group_properties:
+                    """
+        else:
+            print("You don't have enough money to buy it") 
 
     def sell_property(self, property):
         self.properties.remove(property)
@@ -164,22 +227,109 @@ class AI_Agent(Player):
         super().__init__(name, appearance, money)
         self.depth = depth
 
-    def make_decision(self, game_state):
+    def play(self, property, state):
+        if property.type == "city" or property.type == "service_centers":
+            if property.owner != None and property.owner != self:
+                print(f"{self.name} has to pay ${property.rent} to {property.owner.name}")
+                self.pay_rent(property)
+            elif property.owner == None:
+                print(f"{self.name} can buy {property.name} for ${property.price}")
+                if self.make_decision(state) == "buy":
+                    self.buy_property(property)
+                    print(f"You bought {property.name}.")
+                else:
+                    print(f"You didn't buy {property.name}.")
+            elif property.owner == self:
+                if self.make_decision(state) == "sell":
+                    self.sell_property(property)
+                    print(f"You soled {property.name} for {0.8 * property.price}.")
+                else:
+                    print(f"You didn't sell {property.name}.")
+        if property.type == "stay_place":
+            if property.name == "Go (Collect $200)":
+                pass
+            elif property.name == "Jail":
+                if self.jail_cards > 0 and self.make_decision(state) == "use_jail_card":
+                    self.jail_cards -= 1
+                    self.jail = False
+                    print(f"{self.name} used a get out of jail free card.")
+                else:
+                    if self.doubles:
+                        self.doubles = False
+                        self.doubles_rolls = 0
+                    self.position = 9
+                    self.jail = True
+                    self.jail_turns += 1
+                    print(f"{self.name} went to jail.")
+            elif property.name == "Auction (Trade)":
+                #TODO_: After compliting auction function, add it here
+                print("Currently Auction (Trade) is not available!")
+                pass
+            elif property.name == "Free Parking":
+                print("Enjoy your free parking!")
+            elif property.name == "Chance":
+                self.chance(self.players)
+            elif property.name == "Income Tax":
+                print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
+                self.money -= 0.1 * self.money
+            elif property.name == "Luxury Tax":
+                self.money -= 200
+                print(f"{self.name} paied $200 to the bank for Luxury Tax!")
+            elif property.name == "Treasure":
+                rand_mony = random.randint(5, 20)*10
+                print(f"{self.name} got ${rand_mony} from the bank!")
+                self.money += rand_mony
+            else:
+                raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
+
+    def current_possible_actions(self, state):
+        # get the current player's position and properties
+        position = state.get_player_position(self)
+        properties = state.get_player_properties(self)
+        
+        # define function to check if property can be bought
+        def can_buy_property(property):
+            return property.owner is None
+
+        # define function to check if property can be sold
+        def can_sell_property(property):
+            return property.owner == self
+
+        # define possible actions
+        possible_actions = []
+
+        # add actions to buy properties
+        for property in state.board:
+            if property.type in ["city", "service_centers"] and can_buy_property(property):
+                possible_actions.append(("buy", property))
+
+        # add actions to sell properties
+        for property in properties:
+            if can_sell_property(property):
+                possible_actions.append(("sell", property))
+        
+        # add action to stay (do nothing)
+        possible_actions.append(("stay", None))
+
+        return possible_actions
+
+    def make_decision(self, state):
         """
         The make_decision method implements the Expectiminimax algorithm for the AI Agent.
         The Expectiminimax algorithm is a recursive algorithm used for decision making.
         """
-        # create a list of all possible actions the agent can take
-        actions = self.get_possible_actions(game_state)
+        # create a list of all possible actions the agent can take, from:
+        # ["buy", "sell", "use_jail_card", "trade", "nothing_just_stay"]
+        actions = self.current_possible_actions(state)
 
         # calculate the expected value for each action using expectiminimax algorithm
         action_values = []
         for action in actions:
             # apply the action to the game state to get the new state
-            new_state = self.get_next_state(game_state, action)
+            new_state = self.get_next_state(state, action)
 
             # calculate the expected value for the new state
-            value = self.expectimax(new_state, self.depth)
+            value = self.expectiminimax(new_state, self.depth)
 
             # add the action and its expected value to the list of action values
             action_values.append((action, value))
@@ -193,22 +343,22 @@ class AI_Agent(Player):
         # return the chosen action
         return best_action
 
-    def expectimax(self, state, depth):
+    def expectiminimax(self, state, depth):
         """
-        The expectimax method calculates the expected value of the given state using the Expectiminimax algorithm.
+        The expectiminimax method calculates the expected value of the given state using the Expectiminimax algorithm.
         """
         # check if the game is over or the maximum depth has been reached
         if state.is_terminal() or depth == 0:
             return self.evaluate_state(state)
 
         # check if it's the AI Agent's turn
-        if state.get_current_player() == self:
+        if state.get_self() == self:
             # maximize the expected value
-            max_value = -inf
-            actions = self.get_possible_actions(state)
+            max_value = -np.inf
+            actions = self.current_possible_actions(state)
             for action in actions:
                 new_state = self.get_next_state(state, action)
-                value = self.expectimax(new_state, depth - 1)
+                value = self.expectiminimax(new_state, depth - 1)
                 max_value = max(max_value, value)
             return max_value
 
@@ -219,7 +369,7 @@ class AI_Agent(Player):
             probabilities = state.get_chance_probabilities()
             for outcome, probability in probabilities.items():
                 new_state = self.get_next_state(state, outcome)
-                value = self.expectimax(new_state, depth - 1)
+                value = self.expectiminimax(new_state, depth - 1)
                 total_value += value * probability
             return total_value
 
