@@ -1,4 +1,4 @@
-class Property:                                                     # Cities and places
+class Property:             # Cities and Places
     def __init__(self, name, type, country, price, rent, index):
         self.name = name
         self.country = country
@@ -7,11 +7,13 @@ class Property:                                                     # Cities and
         self.rent = rent
         self.index = index
         self.owner = None
+        self.is_upgrade = False
 
-    def upgrade(self, name, type, country, cur_price, cur_rent):    # Build Hotels and Apartments
-        if self.country in self.owner.countries:
-            self.price = 0.5 * cur_price
-            self.rent = cur_rent * 1.5
+    def upgrade(self):      # Build Hotels and Apartments
+        self.owner.money -= 0.5 * self.price
+        self.is_upgrade = True
+        self.price *= 1.5
+        self.rent *= 1.5
 
     def print_property_status(self):
         print(f"| ________________{(self.index)}__________________")
@@ -36,21 +38,3 @@ class Property:                                                     # Cities and
             return (str(self.name) + ": " + str(self.price) + ": " + str(self.rent))
         else:
             return (str(self.name) + ": " + str(self.price) + ": " + str(self.rent))
-
-#TODO_: complete this
-'''
-def auction(player1, player2):
-    # Check if both players agree to exchange the cities
-    if players[0].agree_to_exchange(cities) and players[1].agree_to_exchange(cities):
-        
-        # Exchange the ownership of the cities
-        players[0].remove_city(cities[0])
-        players[1].add_city(cities[0])
-        players[1].remove_city(cities[1])
-        players[0].add_city(cities[1])
-        
-        print("The cities were exchanged between the players.")
-        
-    else:
-        print("The players did not agree to exchange the cities.")
-'''

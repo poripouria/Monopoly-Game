@@ -19,28 +19,34 @@ class Player:
         self.all_pussible_actions = ["buy", "sell", "use_jail_card", "trade", "nothing_just_stay"]
 
 
-    def play(self, property):
-        if property.type == "city" or property.type == "service_centers":
-            if property.owner != None and property.owner != self:
-                print(f"{self.name} has to pay ${property.rent} to {property.owner.name}")
-                self.pay_rent(property)
-            elif property.owner == None:
-                print(f"{self.name} can buy {property.name} for ${property.price}")
+    def play(self, position, players, properties):
+        if properties[position].type in ["city" ,"service_centers"]:
+            if properties[position].owner != None and properties[position].owner != self:
+                print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
+                self.pay_rent(properties[position])
+            elif properties[position].owner == None:
+                print(f"{self.name} can buy {properties[position].name} for ${properties[position].price}")
                 if input(f"Do you want to buy it (you have ${self.money})? (y/n) ") == "y":
-                    self.buy_property(property)
-                    print(f"You bought {property.name}.")
+                    self.buy_property(properties[position], properties)
+                    print(f"You bought {properties[position].name}.")
                 else:
-                    print(f"You didn't buy {property.name}.")
-            elif property.owner == self:
-                if input(f"Do you want to sell {property.name} for {0.8 * property.price}? (y/n) ") == "y":
-                    self.sell_property(property)
-                    print(f"You soled {property.name} for {0.8 * property.price}.")
+                    print(f"You didn't buy {properties[position].name}.")
+            elif properties[position].owner == self:
+                if input(f"Do you want to sell {properties[position].name} for {0.8 * properties[position].price}? (y/n) ") == "y":
+                    self.sell_property(properties[position], properties)
+                    print(f"You soled {properties[position].name} for {0.8 * properties[position].price}.")
                 else:
-                    print(f"You didn't sell {property.name}.")
-        if property.type == "stay_place":
-            if property.name == "Go (Collect $200)":
+                    print(f"You didn't sell {properties[position].name}.")
+                if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
+                    if input(f"Do you want to upgrade {properties[position].name} for {1.5 * properties[position].price}? (y/n) ") == "y":
+                        print(f"You upgraded {properties[position].name} for {0.5*properties[position].price}.")
+                        self.upgrade_property(properties[position])
+                    else:
+                        print(f"You didn't upgrade {properties[position].name}.")
+        if properties[position].type == "stay_place":
+            if properties[position].name == "Go (Collect $200)":
                 pass
-            elif property.name == "Jail":
+            elif properties[position].name == "Jail":
                 if self.jail_cards > 0 and input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
                     self.jail_cards -= 1
                     self.jail = False
@@ -53,21 +59,21 @@ class Player:
                     self.jail = True
                     self.jail_turns += 1
                     print(f"{self.name} went to jail.")
-            elif property.name == "Auction (Trade)":
+            elif properties[position].name == "Auction (Trade)":
                 #TODO_: After compliting auction function, add it here
                 print("Currently Auction (Trade) is not available!")
                 pass
-            elif property.name == "Free Parking":
+            elif properties[position].name == "Free Parking":
                 print("Enjoy your free parking!")
-            elif property.name == "Chance":
-                self.chance(self.players)
-            elif property.name == "Income Tax":
+            elif properties[position].name == "Chance":
+                self.chance(players)
+            elif properties[position].name == "Income Tax":
                 print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
                 self.money -= 0.1 * self.money
-            elif property.name == "Luxury Tax":
+            elif properties[position].name == "Luxury Tax":
                 self.money -= 200
                 print(f"{self.name} paied $200 to the bank for Luxury Tax!")
-            elif property.name == "Treasure":
+            elif properties[position].name == "Treasure":
                 rand_mony = random.randint(5, 20)*10
                 print(f"{self.name} got ${rand_mony} from the bank!")
                 self.money += rand_mony
@@ -158,24 +164,36 @@ class Player:
         else:
             raise Exception("Something went wrong with the CHANCE COMMAND.")
 
-    def buy_property(self, property):
+    def buy_property(self, property, properties):
         if property.price < self.money:
             self.properties.append(property)
             self.properties_value += property.price
             self.money -= property.price
             property.owner = self
-            # TODO_: complete this
-            """same_owner = True
-            group_properties = [prpt for prpt in self.properties if prpt.country == property.country]
-            for prpt in group_properties:
-                if prpt.owner != property.owner:
-                    same_owner = False
-                    break
-            if same_owner:
-                for prpt in group_properties:
-                    """
+            if property.type == "city":
+                for i in range(40):
+                    if properties[i].type == "city" and properties[i].country == property.country:
+                        if properties[i].owner != self or properties[i].owner is None:
+                            break
+                else:
+                    self.countries.append(property.country)
+                    print(f"{self.name} got all the cities in {property.country}!")
+            elif property.type == "service_centers":
+                for i in range(40):
+                    if properties[i].type == "service_centers":
+                        if properties[i].owner != self or properties[i].owner is None:
+                            break
+                else:
+                    self.countries.append("Service-Centers")
+                    print(f"{self.name} got all the service centers!")
         else:
-            print("You don't have enough money to buy it") 
+            print("You don't have enough money to buy it.") 
+
+    def upgrade_property(self, property):      # Build Hotels and Apartments
+        if property.price < 2 * self.money:
+            property.upgrade()   
+        else:
+            print("You don't have enough money to Build here.") 
 
     def sell_property(self, property):
         self.properties.remove(property)
@@ -227,28 +245,34 @@ class AI_Agent(Player):
         super().__init__(name, appearance, money)
         self.depth = depth
 
-    def play(self, property, state):
-        if property.type == "city" or property.type == "service_centers":
-            if property.owner != None and property.owner != self:
-                print(f"{self.name} has to pay ${property.rent} to {property.owner.name}")
-                self.pay_rent(property)
-            elif property.owner == None:
-                print(f"{self.name} can buy {property.name} for ${property.price}")
+    def play(self, position, players, properties, state):
+        if properties[position].type == "city" or properties[position].type == "service_centers":
+            if properties[position].owner != None and properties[position].owner != self:
+                print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
+                self.pay_rent(properties[position])
+            elif properties[position].owner == None:
+                print(f"{self.name} can buy {properties[position].name} for ${properties[position].price}")
                 if self.make_decision(state) == "buy":
-                    self.buy_property(property)
-                    print(f"You bought {property.name}.")
+                    self.buy_property(properties[position], properties)
+                    print(f"You bought {properties[position].name}.")
                 else:
-                    print(f"You didn't buy {property.name}.")
-            elif property.owner == self:
+                    print(f"You didn't buy {properties[position].name}.")
+            elif properties[position].owner == self:
                 if self.make_decision(state) == "sell":
-                    self.sell_property(property)
-                    print(f"You soled {property.name} for {0.8 * property.price}.")
+                    self.sell_properties[position](properties[position])
+                    print(f"You soled {properties[position].name} for {0.8 * properties[position].price}.")
                 else:
-                    print(f"You didn't sell {property.name}.")
-        if property.type == "stay_place":
-            if property.name == "Go (Collect $200)":
+                    print(f"You didn't sell {properties[position].name}.")
+                if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
+                    if self.make_decision(state) == "upgrade":
+                        print(f"You upgraded {properties[position].name} for {0.5*properties[position].price}.")
+                        self.upgrade_property(properties[position])
+                    else:
+                        print(f"You didn't upgrade {properties[position].name}.")
+        if properties[position].type == "stay_place":
+            if properties[position].name == "Go (Collect $200)":
                 pass
-            elif property.name == "Jail":
+            elif properties[position].name == "Jail":
                 if self.jail_cards > 0 and self.make_decision(state) == "use_jail_card":
                     self.jail_cards -= 1
                     self.jail = False
@@ -261,21 +285,21 @@ class AI_Agent(Player):
                     self.jail = True
                     self.jail_turns += 1
                     print(f"{self.name} went to jail.")
-            elif property.name == "Auction (Trade)":
+            elif properties[position].name == "Auction (Trade)":
                 #TODO_: After compliting auction function, add it here
                 print("Currently Auction (Trade) is not available!")
                 pass
-            elif property.name == "Free Parking":
+            elif properties[position].name == "Free Parking":
                 print("Enjoy your free parking!")
-            elif property.name == "Chance":
-                self.chance(self.players)
-            elif property.name == "Income Tax":
+            elif properties[position].name == "Chance":
+                self.chance(players)
+            elif properties[position].name == "Income Tax":
                 print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
                 self.money -= 0.1 * self.money
-            elif property.name == "Luxury Tax":
+            elif properties[position].name == "Luxury Tax":
                 self.money -= 200
                 print(f"{self.name} paied $200 to the bank for Luxury Tax!")
-            elif property.name == "Treasure":
+            elif properties[position].name == "Treasure":
                 rand_mony = random.randint(5, 20)*10
                 print(f"{self.name} got ${rand_mony} from the bank!")
                 self.money += rand_mony
@@ -319,7 +343,7 @@ class AI_Agent(Player):
         The Expectiminimax algorithm is a recursive algorithm used for decision making.
         """
         # create a list of all possible actions the agent can take, from:
-        # ["buy", "sell", "use_jail_card", "trade", "nothing_just_stay"]
+        # ["buy", "sell", "upgrade", "use_jail_card", "trade", "nothing_just_stay"]
         actions = self.current_possible_actions(state)
 
         # calculate the expected value for each action using expectiminimax algorithm
@@ -384,3 +408,21 @@ class AI_Agent(Player):
         for action in self.actions(dice1, dice2):
             pass
         return best_action
+
+#TODO_: complete this
+'''
+def auction(player1, player2):
+    # Check if both players agree to exchange the cities
+    if players[0].agree_to_exchange(cities) and players[1].agree_to_exchange(cities):
+        
+        # Exchange the ownership of the cities
+        players[0].remove_city(cities[0])
+        players[1].add_city(cities[0])
+        players[1].remove_city(cities[1])
+        players[0].add_city(cities[1])
+        
+        print("The cities were exchanged between the players.")
+        
+    else:
+        print("The players did not agree to exchange the cities.")
+'''

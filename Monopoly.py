@@ -1,10 +1,11 @@
 import random
 import numpy as np
+from Property import *
 
 class Monopoly():
-    def __init__(self, players, properties, players_num=2, max_rounds=30, max_money=3500, AI_Agent_Mode=False):
+    def __init__(self, players, players_num=2, max_rounds=30, max_money=2500, AI_Agent_Mode=False):
         self.players = players
-        self.properties = properties
+        self.properties = []
         self.players_num = players_num
         self.max_rounds = max_rounds
         self.max_money = max_money
@@ -53,7 +54,7 @@ class Monopoly():
         print()
 
     def start_game(self):
-    # ----------------      start game    ---------------- #n
+        # ----------------      start game    ---------------- #n
         random.shuffle(self.players)
         self.display_game_state()
         wtd = "c"
@@ -63,7 +64,7 @@ class Monopoly():
             elif wtd == "p":
                 self.display_game_state("properties")
             for turn_counter in range(self.players_num):
-            # ----------------  Check Current Player  ---------------- #
+                # ----------------  Check Current Player  ---------------- #
                 current_player = self.players[turn_counter]
                 if current_player.is_bankrupt():
                     print(f"{current_player.name} is bankrupt!")
@@ -84,12 +85,20 @@ class Monopoly():
                     if current_player.jail_turns == 0:
                         current_player.jail = False
                     continue
-            # ----------------        Roll Dices      ---------------- #
+                # ----------------        Roll Dices      ---------------- #
                 print(f"\n{current_player.name}'s turn")
                 for i in range(4):
                     input("*** Press Inter to ROLL DICES.")
                     current_player.roll_dices()
-                    self.play_monopoly(current_player)
+                    # ----------------  Players Decision ---------------- #
+                    print(f"{current_player.name} is on {self.properties[current_player.position].name}")
+                    if type(current_player).__name__ == "AI_Agent":
+                        current_player.play(current_player.position, self.players, self.properties, state=None)
+                    if type(current_player).__name__ == "Player":
+                        current_player.play(current_player.position, self.players, self.properties)
+                    # ---------------- Show Game Status  ---------------- #
+                    print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
+                    self.display_game_state("players")
                     if not current_player.doubles:
                         break
             # ----------------    Check Game State    ---------------- #
@@ -109,13 +118,27 @@ class Monopoly():
         print()
         return
 
-    def play_monopoly(self, current_player):
-    # ----------------  Players Decision ---------------- #
-        print(f"{current_player.name} is on {self.properties[current_player.position].name}")
-        if type(current_player).__name__ == "AI_Agent":
-            current_player.play(self.properties[current_player.position], state=None)
-        if type(current_player).__name__ == "Player":
-            current_player.play(self.properties[current_player.position])
-    # ---------------- Show Game Status  ---------------- #
-        print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
-        self.display_game_state("players")
+    def init_board(self, df):
+        property_place = []
+        for place_ in df["place"]:
+            property_place.append(place_)
+        property_type = []
+        for type_ in df["type"]:
+            property_type.append(type_)
+        property_country = []
+        for country_ in df["country"]:
+            property_country.append(country_)
+        property_price = []
+        for price_ in df["price"]:
+            property_price.append(float(price_))
+        property_rent = []
+        for rent_ in df["rent"]:
+            property_rent.append(float(rent_))
+        properties = []
+        for i in range(40):
+            properties.append(Property(property_place[i], 
+                                        property_type[i], 
+                                        property_country[i], 
+                                        property_price[i], 
+                                        property_rent[i], i))
+        self.properties = properties
