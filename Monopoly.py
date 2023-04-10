@@ -11,6 +11,7 @@ class Monopoly():
         self.max_money = max_money
         self.AI_Agent_Mode = AI_Agent_Mode
         self.round = 0
+        self.current_player = None
         self.losers = []
         self.winner = None
 
@@ -31,6 +32,7 @@ class Monopoly():
         state = {"properties": self.properties,
                  "players": self.players,
                  "rounds_left": self.max_rounds - self.round,
+                 "current_player": self.current_player,
                  "max_money": self.max_money}
         return state
 
@@ -73,6 +75,7 @@ class Monopoly():
             for turn_counter in range(self.players_num):
                 # ----------------  Check Current Player  ---------------- #
                 current_player = self.players[turn_counter]
+                self.current_player = current_player
                 if current_player.is_bankrupt():
                     print(f"{current_player.name} is bankrupt!")
                     for _ in current_player.properties:

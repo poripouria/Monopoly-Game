@@ -23,8 +23,6 @@ class Player:
     def play(self, position, state):
         properties = state["properties"]
         players = state["players"]
-        max_money = state["max_money"]
-        max_rounds = state["max_rounds"]
 
         if properties[position].type in ["city" ,"service_centers"]:
             if properties[position].owner != None and properties[position].owner != self:
@@ -256,15 +254,13 @@ class Player:
         return (str(self.name))
 
 class AI_Agent(Player):
-    def __init__(self, name, depth=5, appearance=None, money=1500):
+    def __init__(self, name, depth=3, appearance=None, money=1500):
         super().__init__(name, appearance, money)
         self.depth = depth
 
     def play(self, position, state):
         properties = state["properties"]
         players = state["players"]
-        rounds_left = state["rounds_left"]
-        max_money = state["max_money"]
 
         if properties[position].type == "city" or properties[position].type == "service_centers":
             if properties[position].owner != None and properties[position].owner != self:
@@ -349,10 +345,6 @@ class AI_Agent(Player):
         return possible_actions
 
     def make_decision(self, state):
-        """
-        The make_decision method implements the Expectiminimax algorithm for the AI Agent.
-        The Expectiminimax algorithm is a recursive algorithm used for decision making.
-        """
         # create a list of all possible actions the agent can take.
         actions = self.current_possible_actions()
 
@@ -374,15 +366,12 @@ class AI_Agent(Player):
         return best_action
 
     def expectiminimax(self, state, depth):
-        """
-        The expectiminimax method calculates the expected value of the given state using the Expectiminimax algorithm.
-        """
         # check if the game is over or the maximum depth has been reached
         if state["rounds_left"] == 0 or depth == 0:
             return self.evaluate_state(state)
 
         # check if it's the AI Agent's turn
-        if state.get_self() == self:
+        if state["current_player"] == self:
             # maximize the expected value
             max_value = -np.inf
             actions = self.current_possible_actions(state)
@@ -391,11 +380,21 @@ class AI_Agent(Player):
                 value = self.expectiminimax(new_state, depth-1)
                 max_value = max(max_value, value)
             return max_value
+        # check if it's the Minimum player's turn
+        elif state["current_player"] != self:
+            # minimize the expected value
+            min_value = np.inf
+            actions = self.current_possible_actions(state)
+            for action in actions:
+                new_state = self.get_next_state(state, action)
+                value = self.expectiminimax(new_state, depth-1)
+                min_value = min(min_value, value)
+            return min_value
         # otherwise, it's the chance player's turn
         else:
             # calculate the expected value
             total_value = 0
-            probabilities = state.get_chance_probabilities()
+            probabilities = all_rolls()
             for outcome, probability in probabilities.items():
                 new_state = self.get_next_state(state, outcome)
                 value = self.expectiminimax(new_state, depth-1)
@@ -403,20 +402,64 @@ class AI_Agent(Player):
             return total_value
 
     def evaluate_state(self, state):
-        """
-        The evaluate_state method evaluates the given state and returns a score.
-        """
+        
         return best_action
 
-    import copy
-
     def get_next_state(self, state, action):
-        """
-        The get_next_state method applies the given action to the given state and returns the new state.
-        """
-        new_state = copy.deepcopy(state)
-        # implement the changes to the new_state using the given action
-        # ...
+        new_state = deepcopy(state)
+        current_player = new_state["current_player"]
+        properties = new_state["properties"]
+        if action == "buy":
+            current_player.buy_property(properties[current_player.position], properties)
+        elif action == "sell":
+            current_player.sell_property(properties[current_player.position])
+        elif action == "upgrade":
+            current_player.upgrade_property(properties[current_player.position])
+        elif action == "use_jail_card":
+            current_player.jail_cards -= 1
+            current_player.jail = False
+        elif action == "auction":
+            #TODO_: After compliting auction function, add it here
+            pass
+        elif action == "nothing_just_stay":
+            pass
+        else:
+            raise Exception("Something went wrong in get_next_state function.")
+
         return new_state
+
+def all_rolls():
+    # Create an empty list to store the results
+    all_results = []
+    # Loop through all possible sums from 2 to 12
+    for i in range(2,13):
+        # Initialize the number of favorable outcomes to zero
+        favorable = 0
+        # Loop through all possible values for the first die
+        for j in range(1,7):
+            # Check if there is a possible value for the second die that gives the desired sum
+            if i-j >= 1 and i-j <= 6:
+                # Increment the number of favorable outcomes by one
+                favorable += 1
+        # Calculate the probability using the formula
+        probability = favorable / 36
+        # Add the sum and its probability to the list as a tuple
+        all_results.append((i,probability))
+    """
+    for outcome, probability in probabilities.items():
+        print(f"Outcome= {outcome}: Probability= {probability}")
+    """
+    """
+    2 : (1+1)                                           = 1/36
+    3 : (2+1) & (1+2)                                   = 1/18
+    4 : (2+2) & (3+1) & (1+3)                           = 1/12
+    5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9
+    6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36
+    7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6
+        ...
+    11: (5+6) & (6+5)                                   = 1/18  
+    12: (6+6)                                           = 1/36
+    """
+    return all_results
 
 #TODO_: def auction()
