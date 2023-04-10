@@ -2,6 +2,8 @@ import random
 import numpy as np
 from copy import deepcopy
 
+all_possible_actions = ["buy", "sell", "upgrade", "use_jail_card", "auction", "nothing_just_stay"]
+
 class Player:
     def __init__(self, name, appearance=None, money=1500):
         self.name = name
@@ -17,8 +19,6 @@ class Player:
         self.dices = [0, 0]
         self.doubles = False
         self.doubles_rolls = 0
-        self.all_possible_actions = ["buy", "sell", "upgrade", "use_jail_card", "auction", "nothing_just_stay"]
-
 
     def play(self, position, state):
         properties = state["properties"]
@@ -322,32 +322,31 @@ class AI_Agent(Player):
             else:
                 raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
-    def current_possible_actions(self):
+    def current_possible_actions(self, state):
         possible_actions = []
-
-        if properties[position].type == "city" or properties[position].type == "service_centers":
+        properties = state["properties"]
+        if properties[self.position].type == "city" or properties[self.position].type == "service_centers":
             if properties[self.position].owner == None:
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 possible_actions.append(all_possible_actions[0]) # "buy"
-            elif properties[position].owner == self:
+            elif properties[self.position].owner == self:
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 possible_actions.append(all_possible_actions[1]) # "sell"
-                if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
+                if (properties[self.position].type == "city" and properties[self.position].country in self.countries) or (properties[self.position].type == "service_centers" and "Service-Centers" in self.countries):
                     possible_actions.append(all_possible_actions[2]) # "upgrade"
-        if properties[position].type == "stay_place":
-            if properties[position].name == "Jail":
+        if properties[self.position].type == "stay_place":
+            if properties[self.position].name == "Jail":
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 possible_actions.append(all_possible_actions[3]) # "use_jail_card"
-            elif properties[position].name == "Auction (Trade)":
+            elif properties[self.position].name == "Auction (Trade)":
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 possible_actions.append(all_possible_actions[4]) # "auction"
-
+        print(f"#####   POSSACTS:{possible_actions}    #####")
         return possible_actions
 
     def make_decision(self, state):
         # create a list of all possible actions the agent can take.
-        actions = self.current_possible_actions()
-
+        actions = self.current_possible_actions(state)
         # calculate the expected value for each action using expectiminimax algorithm
         action_values = []
         for action in actions:
@@ -357,7 +356,6 @@ class AI_Agent(Player):
             value = self.expectiminimax(new_state, self.depth)
             # add the action and its expected value to the list of action values
             action_values.append((action, value))
-
         # sort the actions by their expected values in descending order
         sorted_actions = sorted(action_values, key=lambda x: x[1], reverse=True)
         # choose the action with the highest expected value
@@ -396,14 +394,14 @@ class AI_Agent(Player):
             total_value = 0
             probabilities = all_rolls()
             for outcome, probability in probabilities.items():
-                new_state = self.get_next_state(state, outcome)
+                new_state = self.get_next_state_2(state, outcome)
                 value = self.expectiminimax(new_state, depth-1)
                 total_value += value * probability
             return total_value
 
     def evaluate_state(self, state):
-        
-        return best_action
+        value = 10
+        return value
 
     def get_next_state(self, state, action):
         new_state = deepcopy(state)
@@ -426,6 +424,11 @@ class AI_Agent(Player):
         else:
             raise Exception("Something went wrong in get_next_state function.")
 
+        return new_state
+
+    def get_next_state_2(self, state, outcome):
+        new_state = deepcopy(state)
+        new_state["current_player"].move(int(outcome))
         return new_state
 
 def all_rolls():

@@ -33,6 +33,7 @@ class Monopoly():
                  "players": self.players,
                  "rounds_left": self.max_rounds - self.round,
                  "current_player": self.current_player,
+                 "winner": self.winner,
                  "max_money": self.max_money}
         return state
 
@@ -100,7 +101,8 @@ class Monopoly():
                 print(f"\n{current_player.name}'s turn")
                 for i in range(4):
                     # ----------------     Roll Dices    ---------------- #
-                    input("*** Press Inter to ROLL DICES.")
+                    if type(current_player).__name__ == "Player":
+                        input("*** Press Inter to ROLL DICES.")
                     current_player.roll_dices()
                     print(f"{current_player.name} is on {self.properties[current_player.position].name}")
                     # ----------------  Players Decision ---------------- #
