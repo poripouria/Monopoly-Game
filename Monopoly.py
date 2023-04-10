@@ -99,7 +99,6 @@ class Monopoly():
                         current_player.jail = False
                     continue
                 print(f"\n{current_player.name}'s turn")
-                current_player.money = 10
                 for i in range(4):
                     # ----------------     Roll Dices    ---------------- #
                     if type(current_player).__name__ == "Player":
