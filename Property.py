@@ -12,9 +12,9 @@ class Property:             # Cities and Places
 
     def upgrade(self):      # Build Hotels and Apartments
         self.owner.money -= 0.5 * self.price
-        self.is_upgrade = True
         self.price *= 1.5
         self.rent *= 1.5
+        self.is_upgrade = True
         self.upgrade_time += 1
 
     def print_property_status(self):

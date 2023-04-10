@@ -1,6 +1,6 @@
-import copy
 import random
 import numpy as np
+from copy import deepcopy
 
 class Player:
     def __init__(self, name, appearance=None, money=1500):
@@ -17,7 +17,7 @@ class Player:
         self.dices = [0, 0]
         self.doubles = False
         self.doubles_rolls = 0
-        self.all_pussible_actions = ["buy", "sell", "use_jail_card", "trade", "nothing_just_stay"]
+        self.all_possible_actions = ["buy", "sell", "upgrade", "use_jail_card", "auction", "nothing_just_stay"]
 
 
     def play(self, position, state):
@@ -25,6 +25,7 @@ class Player:
         players = state["players"]
         max_money = state["max_money"]
         max_rounds = state["max_rounds"]
+
         if properties[position].type in ["city" ,"service_centers"]:
             if properties[position].owner != None and properties[position].owner != self:
                 print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
@@ -264,6 +265,7 @@ class AI_Agent(Player):
         players = state["players"]
         rounds_left = state["rounds_left"]
         max_money = state["max_money"]
+
         if properties[position].type == "city" or properties[position].type == "service_centers":
             if properties[position].owner != None and properties[position].owner != self:
                 print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
@@ -324,34 +326,25 @@ class AI_Agent(Player):
             else:
                 raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
-    def current_possible_actions(self, state):
-        # get the current player's position and properties
-        position = state.get_player_position(self)
-        properties = state.get_player_properties(self)
-        
-        # define function to check if property can be bought
-        def can_buy_property(property):
-            return property.owner is None
-
-        # define function to check if property can be sold
-        def can_sell_property(property):
-            return property.owner == self
-
-        # define possible actions
+    def current_possible_actions(self):
         possible_actions = []
 
-        # add actions to buy properties
-        for property in state.board:
-            if property.type in ["city", "service_centers"] and can_buy_property(property):
-                possible_actions.append(("buy", property))
-
-        # add actions to sell properties
-        for property in properties:
-            if can_sell_property(property):
-                possible_actions.append(("sell", property))
-        
-        # add action to stay (do nothing)
-        possible_actions.append(("stay", None))
+        if properties[position].type == "city" or properties[position].type == "service_centers":
+            if properties[self.position].owner == None:
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
+                possible_actions.append(all_possible_actions[0]) # "buy"
+            elif properties[position].owner == self:
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
+                possible_actions.append(all_possible_actions[1]) # "sell"
+                if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
+                    possible_actions.append(all_possible_actions[2]) # "upgrade"
+        if properties[position].type == "stay_place":
+            if properties[position].name == "Jail":
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
+                possible_actions.append(all_possible_actions[3]) # "use_jail_card"
+            elif properties[position].name == "Auction (Trade)":
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
+                possible_actions.append(all_possible_actions[4]) # "auction"
 
         return possible_actions
 
@@ -360,28 +353,23 @@ class AI_Agent(Player):
         The make_decision method implements the Expectiminimax algorithm for the AI Agent.
         The Expectiminimax algorithm is a recursive algorithm used for decision making.
         """
-        # create a list of all possible actions the agent can take, from:
-        # ["buy", "sell", "upgrade", "use_jail_card", "trade", "nothing_just_stay"]
-        actions = self.current_possible_actions(state)
+        # create a list of all possible actions the agent can take.
+        actions = self.current_possible_actions()
 
         # calculate the expected value for each action using expectiminimax algorithm
         action_values = []
         for action in actions:
             # apply the action to the game state to get the new state
             new_state = self.get_next_state(state, action)
-
             # calculate the expected value for the new state
             value = self.expectiminimax(new_state, self.depth)
-
             # add the action and its expected value to the list of action values
             action_values.append((action, value))
 
         # sort the actions by their expected values in descending order
         sorted_actions = sorted(action_values, key=lambda x: x[1], reverse=True)
-
         # choose the action with the highest expected value
         best_action = sorted_actions[0][0]
-
         # return the chosen action
         return best_action
 
@@ -390,7 +378,7 @@ class AI_Agent(Player):
         The expectiminimax method calculates the expected value of the given state using the Expectiminimax algorithm.
         """
         # check if the game is over or the maximum depth has been reached
-        if state.is_terminal() or depth == 0:
+        if state["rounds_left"] == 0 or depth == 0:
             return self.evaluate_state(state)
 
         # check if it's the AI Agent's turn
@@ -400,10 +388,9 @@ class AI_Agent(Player):
             actions = self.current_possible_actions(state)
             for action in actions:
                 new_state = self.get_next_state(state, action)
-                value = self.expectiminimax(new_state, depth - 1)
+                value = self.expectiminimax(new_state, depth-1)
                 max_value = max(max_value, value)
             return max_value
-
         # otherwise, it's the chance player's turn
         else:
             # calculate the expected value
@@ -411,7 +398,7 @@ class AI_Agent(Player):
             probabilities = state.get_chance_probabilities()
             for outcome, probability in probabilities.items():
                 new_state = self.get_next_state(state, outcome)
-                value = self.expectiminimax(new_state, depth - 1)
+                value = self.expectiminimax(new_state, depth-1)
                 total_value += value * probability
             return total_value
 
@@ -419,28 +406,17 @@ class AI_Agent(Player):
         """
         The evaluate_state method evaluates the given state and returns a score.
         """
-        # implement your evaluation function here
-        return random.randint(0, 100)
-        best_value = -np.inf
-        best_action = None
-        for action in self.actions(dice1, dice2):
-           pass
         return best_action
 
-#TODO_: complete this
-'''
-def auction(player1, player2):
-    # Check if both players agree to exchange the cities
-    if players[0].agree_to_exchange(cities) and players[1].agree_to_exchange(cities):
-        
-        # Exchange the ownership of the cities
-        players[0].remove_city(cities[0])
-        players[1].add_city(cities[0])
-        players[1].remove_city(cities[1])
-        players[0].add_city(cities[1])
-        
-        print("The cities were exchanged between the players.")
-        
-    else:
-        print("The players did not agree to exchange the cities.")
-'''
+    import copy
+
+    def get_next_state(self, state, action):
+        """
+        The get_next_state method applies the given action to the given state and returns the new state.
+        """
+        new_state = copy.deepcopy(state)
+        # implement the changes to the new_state using the given action
+        # ...
+        return new_state
+
+#TODO_: def auction()
