@@ -105,12 +105,12 @@ class Monopoly():
                         current_player.play(current_player.position, self.game_state())
                     if type(current_player).__name__ == "Player":
                         current_player.play(current_player.position, self.game_state())
-                    # ---------------- Show Game Status  ---------------- #
+                    # ---------------- Show Players Status  ---------------- #
                     print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
                     self.display_game_state("players")
                     if not current_player.doubles:
                         break
-            # ----------------    Check Game State    ---------------- #
+            # ----------------    Show Game State    ---------------- #
             self.check_winner()
             print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
             self.round += 1
@@ -120,11 +120,9 @@ class Monopoly():
                         "*** Inter \"p\" to see properties status \n" +
                         "*** Inter \"end\" to END this game: ")
         self.check_winner()
-        print()
-        print("Game END.")
+        print("\n", "Game END.")
         print(f"#### WINNER: {self.winner.name}")
-        print(f"#### LOSERS: {self.losers}")
-        print()
+        print(f"#### LOSERS: {self.losers}", "\n")
         return
 
     def init_board(self, df):
