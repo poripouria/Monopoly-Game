@@ -32,7 +32,6 @@ class Player:
                 print(f"{self.name} can buy {properties[position].name} for ${properties[position].price}")
                 if input(f"Do you want to buy it (you have ${self.money})? (y/n) ") == "y":
                     self.buy_property(properties[position], properties)
-                    print(f"{self.name} bought {properties[position].name}.")
                 else:
                     print(f"{self.name} didn't buy {properties[position].name}.")
             elif properties[position].owner == self:
@@ -45,7 +44,6 @@ class Player:
                     print(f"{self.name} didn't sell {properties[position].name}.")
                 if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
                     if input(f"Do you want to upgrade {properties[position].name} for {1.5 * properties[position].price}? (y/n) ") == "y":
-                        print(f"{self.name} upgraded {properties[position].name} for {0.5*properties[position].price}.")
                         self.upgrade_property(properties[position])
                     else:
                         print(f"You didn't upgrade {properties[position].name}.")
@@ -180,6 +178,7 @@ class Player:
             self.properties_value += property.price
             self.money -= property.price
             property.owner = self
+            print(f"{self.name} bought {property.name}.")
             if property.type == "city":
                 for i in range(40):
                     if properties[i].type == "city" and properties[i].country == property.country:
@@ -202,7 +201,8 @@ class Player:
     def upgrade_property(self, property):      # Build Hotels and Apartments
         if property.upgrade_time <= 3:
             if property.price < 2 * self.money:
-                property.upgrade()   
+                print(f"{self.name} upgraded {property.name} for {0.5*property.price}.")
+                property.upgrade()
             else:
                 print("You don't have enough money to Build here.")
         else:

@@ -79,17 +79,17 @@ class Monopoly():
                 self.current_player = current_player
                 if current_player.is_bankrupt():
                     print(f"{current_player.name} is bankrupt!")
-                    for _ in current_player.properties:
-                        self.properties[_].owner = None
+                    for i in current_player.properties:
+                        self.properties[i].owner = None
                     self.players_num -= 1
-                    self.players.remove(current_player)
                     self.losers.append(current_player)
-                    if self.players_num == 1:
-                        self.winner = self.players[0]
-                        print()
-                        print(f"#### WINNER: {self.winner.name}")
-                        print(f"#### LOSERS: {self.losers}")
-                        return
+                    self.players.remove(current_player)
+                if self.players_num == 1:
+                    self.winner = self.players[0]
+                    print()
+                    print(f"#### WINNER: {self.winner.name}")
+                    print(f"#### LOSERS: {self.losers}")
+                    return
                 if current_player.jail and current_player.jail_turns > 0:
                     current_player.doubles = False
                     current_player.doubles_rolls = 0
@@ -99,6 +99,7 @@ class Monopoly():
                         current_player.jail = False
                     continue
                 print(f"\n{current_player.name}'s turn")
+                current_player.money = 10
                 for i in range(4):
                     # ----------------     Roll Dices    ---------------- #
                     if type(current_player).__name__ == "Player":
