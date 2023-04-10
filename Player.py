@@ -351,7 +351,7 @@ class AI_Agent(Player):
         action_values = []
         for action in actions:
             # apply the action to the game state to get the new state
-            new_state = self.get_next_state(state, action)
+            new_state = self.get_next_state(state, action=action)
             # calculate the expected value for the new state
             value = self.expectiminimax(new_state, self.depth)
             # add the action and its expected value to the list of action values
@@ -374,7 +374,7 @@ class AI_Agent(Player):
             max_value = -np.inf
             actions = self.current_possible_actions(state)
             for action in actions:
-                new_state = self.get_next_state(state, action)
+                new_state = self.get_next_state(state, action=action)
                 value = self.expectiminimax(new_state, depth-1)
                 max_value = max(max_value, value)
             return max_value
@@ -384,7 +384,7 @@ class AI_Agent(Player):
             min_value = np.inf
             actions = self.current_possible_actions(state)
             for action in actions:
-                new_state = self.get_next_state(state, action)
+                new_state = self.get_next_state(state, action=action)
                 value = self.expectiminimax(new_state, depth-1)
                 min_value = min(min_value, value)
             return min_value
@@ -394,7 +394,7 @@ class AI_Agent(Player):
             total_value = 0
             probabilities = all_rolls()
             for outcome, probability in probabilities.items():
-                new_state = self.get_next_state_2(state, outcome)
+                new_state = self.get_next_state(state, outcome=outcome)
                 value = self.expectiminimax(new_state, depth-1)
                 total_value += value * probability
             return total_value
@@ -403,32 +403,30 @@ class AI_Agent(Player):
         value = 10
         return value
 
-    def get_next_state(self, state, action):
+    def get_next_state(self, state, action=None, outcome=None):
         new_state = deepcopy(state)
         current_player = new_state["current_player"]
         properties = new_state["properties"]
-        if action == "buy":
-            current_player.buy_property(properties[current_player.position], properties)
-        elif action == "sell":
-            current_player.sell_property(properties[current_player.position])
-        elif action == "upgrade":
-            current_player.upgrade_property(properties[current_player.position])
-        elif action == "use_jail_card":
-            current_player.jail_cards -= 1
-            current_player.jail = False
-        elif action == "auction":
-            #TODO_: After compliting auction function, add it here
-            pass
-        elif action == "nothing_just_stay":
-            pass
-        else:
-            raise Exception("Something went wrong in get_next_state function.")
+        if action != None:
+            if action == "buy":
+                current_player.buy_property(properties[current_player.position], properties)
+            elif action == "sell":
+                current_player.sell_property(properties[current_player.position])
+            elif action == "upgrade":
+                current_player.upgrade_property(properties[current_player.position])
+            elif action == "use_jail_card":
+                current_player.jail_cards -= 1
+                current_player.jail = False
+            elif action == "auction":
+                #TODO_: After compliting auction function, add it here
+                pass
+            elif action == "nothing_just_stay":
+                pass
+            else:
+                raise Exception("Something went wrong in get_next_state function.")
+        if outcome != None:
+            current_player.move(int(outcome))
 
-        return new_state
-
-    def get_next_state_2(self, state, outcome):
-        new_state = deepcopy(state)
-        new_state["current_player"].move(int(outcome))
         return new_state
 
 def all_rolls():
