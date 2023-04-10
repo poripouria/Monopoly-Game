@@ -94,7 +94,7 @@ class Monopoly():
                     current_player.doubles = False
                     current_player.doubles_rolls = 0
                     current_player.jail_turns -= 1
-                    print(f"{current_player.name} is in JAIL and can't roll dices.")
+                    print(f"\n{current_player.name} is in JAIL and can't roll dices.")
                     if current_player.jail_turns == 0:
                         current_player.jail = False
                     continue
