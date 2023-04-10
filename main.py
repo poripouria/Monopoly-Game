@@ -33,7 +33,7 @@ try:
         # ---------------- defining properties ---------------- #
         df = pd.read_excel("_Data/Properties-Detail.xlsx")
         Monopoly_Game.init_board(df)
-        # ----------------         play        ---------------- #
+        # ----------------        start        ---------------- #
         Monopoly_Game.start_game()
 except Exception as err :
     print(err)
