@@ -27,6 +27,13 @@ class Monopoly():
         self.losers = self.players[:]
         self.losers.remove(self.winner)
 
+    def game_state(self):
+        state = {"properties": self.properties,
+                 "players": self.players,
+                 "rounds_left": self.max_rounds - self.round,
+                 "max_money": self.max_money}
+        return state
+
     def display_game_state(self, mode="game"):
         if mode == "game":
             print("              +++++++++++++++++++++  GAME INFO  +++++++++++++++++++++ ")
@@ -68,6 +75,8 @@ class Monopoly():
                 current_player = self.players[turn_counter]
                 if current_player.is_bankrupt():
                     print(f"{current_player.name} is bankrupt!")
+                    for _ in current_player.properties:
+                        self.properties[_].owner = None
                     self.players_num -= 1
                     self.players.remove(current_player)
                     self.losers.append(current_player)
@@ -85,17 +94,17 @@ class Monopoly():
                     if current_player.jail_turns == 0:
                         current_player.jail = False
                     continue
-                # ----------------        Roll Dices      ---------------- #
                 print(f"\n{current_player.name}'s turn")
                 for i in range(4):
+                    # ----------------     Roll Dices    ---------------- #
                     input("*** Press Inter to ROLL DICES.")
                     current_player.roll_dices()
-                    # ----------------  Players Decision ---------------- #
                     print(f"{current_player.name} is on {self.properties[current_player.position].name}")
+                    # ----------------  Players Decision ---------------- #
                     if type(current_player).__name__ == "AI_Agent":
-                        current_player.play(current_player.position, self.players, self.properties, state=None)
+                        current_player.play(current_player.position, self.game_state())
                     if type(current_player).__name__ == "Player":
-                        current_player.play(current_player.position, self.players, self.properties)
+                        current_player.play(current_player.position, self.game_state())
                     # ---------------- Show Game Status  ---------------- #
                     print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
                     self.display_game_state("players")

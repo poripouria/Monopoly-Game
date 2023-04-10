@@ -1,3 +1,4 @@
+import copy
 import random
 import numpy as np
 
@@ -19,7 +20,11 @@ class Player:
         self.all_pussible_actions = ["buy", "sell", "use_jail_card", "trade", "nothing_just_stay"]
 
 
-    def play(self, position, players, properties):
+    def play(self, position, state):
+        properties = state["properties"]
+        players = state["players"]
+        max_money = state["max_money"]
+        max_rounds = state["max_rounds"]
         if properties[position].type in ["city" ,"service_centers"]:
             if properties[position].owner != None and properties[position].owner != self:
                 print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
@@ -32,6 +37,8 @@ class Player:
                 else:
                     print(f"You didn't buy {properties[position].name}.")
             elif properties[position].owner == self:
+                if self.money < 100:
+                    print(f"ALARM: You have less than $100! Better to sell!")
                 if input(f"Do you want to sell {properties[position].name} for {0.8 * properties[position].price}? (y/n) ") == "y":
                     self.sell_property(properties[position], properties)
                     print(f"You soled {properties[position].name} for {0.8 * properties[position].price}.")
@@ -85,6 +92,7 @@ class Player:
         d2 = random.randint(1, 6)
         roll_result = d1 + d2
         if d1 == d2:
+            self.doubles_rolls += 1
             if self.doubles_rolls > 2:
                 if self.jail_cards > 0 and input(f"You rolled double more than 3 times (Jail Rule). Do you want to use your Jail-Free card? (y/n) ") == "y":
                     self.jail_cards -= 1
@@ -95,15 +103,18 @@ class Player:
                     self.jail = True
                     self.jail_turns += 1
                     print(f"{self.name} went to jail becouse of 3 doubles rolls.")
+                self.doubles = False
+                self.doubles_rolls = 0
                 return
             if self.jail:
                 self.jail_turns -= 1
                 if self.jail_turns == 0:
                     self.jail = False
                 print(f"{self.name} is still in jail and couldn't roll again.")
+                self.doubles = False
+                self.doubles_rolls = 0
                 return
             self.doubles = True
-            self.doubles_rolls += 1
             print(f"{self.name} rolled double ({d1}, {d2}),next turn would be his/her again!")
         else:
             self.doubles = False
@@ -190,10 +201,13 @@ class Player:
             print("You don't have enough money to buy it.") 
 
     def upgrade_property(self, property):      # Build Hotels and Apartments
-        if property.price < 2 * self.money:
-            property.upgrade()   
+        if property.upgrade_time <= 3:
+            if property.price < 2 * self.money:
+                property.upgrade()   
+            else:
+                print("You don't have enough money to Build here.")
         else:
-            print("You don't have enough money to Build here.") 
+            print(f"{property.name} couldn't UPGRADE anymore.")
 
     def sell_property(self, property):
         self.properties.remove(property)
@@ -245,7 +259,11 @@ class AI_Agent(Player):
         super().__init__(name, appearance, money)
         self.depth = depth
 
-    def play(self, position, players, properties, state):
+    def play(self, position, state):
+        properties = state["properties"]
+        players = state["players"]
+        rounds_left = state["rounds_left"]
+        max_money = state["max_money"]
         if properties[position].type == "city" or properties[position].type == "service_centers":
             if properties[position].owner != None and properties[position].owner != self:
                 print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
@@ -406,7 +424,7 @@ class AI_Agent(Player):
         best_value = -np.inf
         best_action = None
         for action in self.actions(dice1, dice2):
-            pass
+           pass
         return best_action
 
 #TODO_: complete this
