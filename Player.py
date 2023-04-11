@@ -32,6 +32,8 @@ class Player:
                 print(f"{self.name} can buy {properties[position].name} for ${properties[position].price}")
                 if input(f"Do you want to buy it (you have ${self.money})? (y/n) ") == "y":
                     self.buy_property(properties[position], properties)
+                    if properties[position].owner == self:
+                        print(f"{self.name} bought {properties[position].name}.")
                 else:
                     print(f"{self.name} didn't buy {properties[position].name}.")
             elif properties[position].owner == self:
@@ -44,9 +46,10 @@ class Player:
                     print(f"{self.name} didn't sell {properties[position].name}.")
                 if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
                     if input(f"Do you want to upgrade {properties[position].name} for {1.5 * properties[position].price}? (y/n) ") == "y":
+                        print(f"{self.name} upgraded {properties[position].name} for {0.5*properties[position].price}.")
                         self.upgrade_property(properties[position])
                     else:
-                        print(f"You didn't upgrade {properties[position].name}.")
+                        print(f"{self.name} didn't upgrade {properties[position].name}.")
         if properties[position].type == "stay_place":
             if properties[position].name == "Go (Collect $200)":
                 pass
@@ -64,9 +67,11 @@ class Player:
                     self.jail_turns += 1
                     print(f"{self.name} went to jail.")
             elif properties[position].name == "Auction (Trade)":
-                #TODO_: After compliting auction function, add it here
-                print("Currently Auction (Trade) is not available!")
-                pass
+                p_index = input("Inter Index of property you wanna treade (Inter -1 to pass): ")
+                if p_index == -1:
+                    print(f"{self.name} prefer not to trade.")
+                elif p_index in self.properties.index:
+                    pass
             elif properties[position].name == "Free Parking":
                 print(f"Enjoy your free parking {self.name}!")
             elif properties[position].name == "Chance":
@@ -178,7 +183,6 @@ class Player:
             self.properties_value += property.price
             self.money -= property.price
             property.owner = self
-            print(f"{self.name} bought {property.name}.")
             if property.type == "city":
                 for i in range(40):
                     if properties[i].type == "city" and properties[i].country == property.country:
@@ -199,9 +203,8 @@ class Player:
             print("You don't have enough money to buy it.") 
 
     def upgrade_property(self, property):      # Build Hotels and Apartments
-        if property.upgrade_time <= 3:
+        if property.upgrade_time < 3:
             if property.price < 2 * self.money:
-                print(f"{self.name} upgraded {property.name} for {0.5*property.price}.")
                 property.upgrade()
             else:
                 print("You don't have enough money to Build here.")
@@ -215,6 +218,9 @@ class Player:
         property.owner = None
         if property.country in self.countries:
             self.countries.remove(property.country)
+
+    def auction(self, property1, property2):
+        pass
 
     def pay_rent(self, property):
         rent = property.rent
@@ -327,43 +333,37 @@ class AI_Agent(Player):
         properties = state["properties"]
         if properties[self.position].type == "city" or properties[self.position].type == "service_centers":
             if properties[self.position].owner == None:
-                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 possible_actions.append(all_possible_actions[0]) # "buy"
-            elif properties[self.position].owner == self:
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
+            elif properties[self.position].owner == self:
                 possible_actions.append(all_possible_actions[1]) # "sell"
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 if (properties[self.position].type == "city" and properties[self.position].country in self.countries) or (properties[self.position].type == "service_centers" and "Service-Centers" in self.countries):
                     possible_actions.append(all_possible_actions[2]) # "upgrade"
         if properties[self.position].type == "stay_place":
             if properties[self.position].name == "Jail":
-                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 possible_actions.append(all_possible_actions[3]) # "use_jail_card"
-            elif properties[self.position].name == "Auction (Trade)":
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
+            elif properties[self.position].name == "Auction (Trade)":
                 possible_actions.append(all_possible_actions[4]) # "auction"
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
         return possible_actions
 
     def make_decision(self, state):
-        # create a list of all possible actions the agent can take.
         actions = self.current_possible_actions(state)
-        # calculate the expected value for each action using expectiminimax algorithm
+        
         action_values = []
         for action in actions:
-            # apply the action to the game state to get the new state
             new_state = self.get_next_state(state, action=action)
-            # calculate the expected value for the new state
             value = self.expectiminimax(new_state, self.depth)
-            # add the action and its expected value to the list of action values
             action_values.append((action, value))
-        # sort the actions by their expected values in descending order
+            
         sorted_actions = sorted(action_values, key=lambda x: x[1], reverse=True)
-        # choose the action with the highest expected value
         best_action = sorted_actions[0][0]
-        # return the chosen action
+
         return best_action
 
     def expectiminimax(self, state, depth):
-        # check if the game is over or the maximum depth has been reached
         if state["rounds_left"] == 0 or depth == 0:
             return self.evaluate_state(state)
 
@@ -429,37 +429,24 @@ class AI_Agent(Player):
         return new_state
 
 def all_rolls():
-    # Create an empty list to store the results
     all_results = []
-    # Loop through all possible sums from 2 to 12
+
     for i in range(2,13):
-        # Initialize the number of favorable outcomes to zero
         favorable = 0
-        # Loop through all possible values for the first die
         for j in range(1,7):
-            # Check if there is a possible value for the second die that gives the desired sum
             if i-j >= 1 and i-j <= 6:
-                # Increment the number of favorable outcomes by one
                 favorable += 1
-        # Calculate the probability using the formula
         probability = favorable / 36
-        # Add the sum and its probability to the list as a tuple
         all_results.append((i,probability))
     """
-    for outcome, probability in probabilities.items():
-        print(f"Outcome= {outcome}: Probability= {probability}")
-    """
-    """
-    2 : (1+1)                                           = 1/36
-    3 : (2+1) & (1+2)                                   = 1/18
-    4 : (2+2) & (3+1) & (1+3)                           = 1/12
-    5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9
-    6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36
-    7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6
-        ...
-    11: (5+6) & (6+5)                                   = 1/18  
-    12: (6+6)                                           = 1/36
+        2 : (1+1)                                           = 1/36
+        3 : (2+1) & (1+2)                                   = 1/18
+        4 : (2+2) & (3+1) & (1+3)                           = 1/12
+        5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9
+        6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36
+        7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6
+            ...
+        11: (5+6) & (6+5)                                   = 1/18  
+        12: (6+6)                                           = 1/36
     """
     return all_results
-
-#TODO_: def auction()
