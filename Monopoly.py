@@ -15,11 +15,13 @@ class Monopoly():
         self.current_player = None
         self.losers = []
         self.winner = None
+        self.whattodo = "c"
         
     def check_winner(self):
         richest = max(self.players, key=lambda p: p.wealth)
         if richest.wealth >= self.max_money:
             self.winner = richest
+            self.whattodo = "end"
         else:
             self.losers = sorted(self.players, key=lambda p: p.money, reverse=True)
             self.winner = self.losers.pop(0)
@@ -65,11 +67,11 @@ class Monopoly():
         # ----------------      start game    ---------------- #n
         random.shuffle(self.players)
         self.display_game_state()
-        wtd = "c"
-        while self.round < self.max_rounds and wtd != "end":
-            if wtd == "g":
+        self.whattodo = "c"
+        while self.round < self.max_rounds and self.whattodo != "end":
+            if self.whattodo == "g":
                 self.display_game_state()
-            elif wtd == "p":
+            elif self.whattodo == "p":
                 self.display_game_state("properties")
             for turn_counter in range(self.players_num):
                 # ----------------  Check Current Player  ---------------- #
@@ -118,7 +120,7 @@ class Monopoly():
             self.check_winner()
             print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
             self.round += 1
-            wtd = input("*** GAME MENU \n" +
+            self.whattodo = input("*** GAME MENU \n" +
                         "*** Inter \"c\" to continue \n" +
                         "*** Inter \"g\" to see game status \n" +
                         "*** Inter \"p\" to see properties status \n" +
