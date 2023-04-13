@@ -249,7 +249,7 @@ class Player:
             print(f"{self.name} don't have enough money to buy {property.name}.") 
 
     def upgrade_property(self, property):      # Build Hotels and Apartments
-        if property.upgrade_time < 3:
+        if property.upgrade_level < 3:
             if property.price < 2 * self.money:
                 property.upgrade()
             else:
