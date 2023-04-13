@@ -23,7 +23,7 @@ class Monopoly():
             self.winner = richest
             self.whattodo = "end"
         else:
-            self.losers = sorted(self.players, key=lambda p: p.money, reverse=True)
+            self.losers = sorted(self.players, key=lambda p: (p.wealth, p.money), reverse=True)
             self.winner = self.losers.pop(0)
 
     def game_state(self):
