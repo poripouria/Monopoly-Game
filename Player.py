@@ -91,12 +91,15 @@ class Player:
                     self.jail_turns += 1
                     print(f"{self.name} went to jail.")
             elif properties[position].name == "Auction (Trade)":
+                pass
                 #TODO_: After compliting auction function, add it here
+                """
                 prop_index = int(input("Inter Index of property you wanna treade (Inter -1 to pass): "))
                 if prop_index == -1:
                     print(f"{self.name} prefer not to trade.")
                 elif prop_index in self.properties.index:
                     pass
+                """
             elif properties[position].name == "Free Parking":
                 print(f"Enjoy your free parking {self.name}!")
             elif properties[position].name == "Chance":
