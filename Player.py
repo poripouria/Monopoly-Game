@@ -46,8 +46,10 @@ class Player:
                     print(f"{self.name} didn't sell {properties[position].name}.")
                 if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
                     if input(f"Do you want to upgrade {properties[position].name} for {1.5 * properties[position].price}? (y/n) ") == "y":
-                        print(f"{self.name} upgraded {properties[position].name} for {0.5*properties[position].price}.")
+                        current_price = properties[position].price
                         self.upgrade_property(properties[position])
+                        if properties[position].is_upgrade:
+                            print(f"{self.name} upgraded {properties[position].name} for {0.5*current_price}.\t(Upgraded {properties[position].upgrade_level} times)")
                     else:
                         print(f"{self.name} didn't upgrade {properties[position].name}.")
         if properties[position].type == "stay_place":
@@ -67,6 +69,7 @@ class Player:
                     self.jail_turns += 1
                     print(f"{self.name} went to jail.")
             elif properties[position].name == "Auction (Trade)":
+                #TODO_: After compliting auction function, add it here
                 p_index = input("Inter Index of property you wanna treade (Inter -1 to pass): ")
                 if p_index == -1:
                     print(f"{self.name} prefer not to trade.")
@@ -179,42 +182,23 @@ class Player:
 
     def buy_property(self, property, properties):
         if property.price < self.money:
-            self.properties.append(property)
-            self.properties_value += property.price
-            self.money -= property.price
-            property.owner = self
-            if property.type == "city":
-                for i in range(40):
-                    if properties[i].type == "city" and properties[i].country == property.country:
-                        if properties[i].owner != self or properties[i].owner is None:
-                            break
-                else:
-                    self.countries.append(property.country)
-                    print(f"{self.name} got all the cities in {property.country}!")
-            elif property.type == "service_centers":
-                for i in range(40):
-                    if properties[i].type == "service_centers":
-                        if properties[i].owner != self or properties[i].owner is None:
-                            break
-                else:
-                    self.countries.append("Service-Centers")
-                    print(f"{self.name} got all the service centers!")
+            property.buy(self, properties)
         else:
-            print("You don't have enough money to buy it.") 
+            print(f"{self.name} don't have enough money to buy it.") 
 
     def upgrade_property(self, property):      # Build Hotels and Apartments
         if property.upgrade_time < 3:
             if property.price < 2 * self.money:
                 property.upgrade()
             else:
-                print("You don't have enough money to Build here.")
+                print(f"{self.name} don't have enough money to Build here.")
         else:
             print(f"{property.name} couldn't UPGRADE anymore.")
 
     def sell_property(self, property):
         self.properties.remove(property)
         self.properties_value -= property.price
-        self.money += 0.8 * property.price
+        self.money += property.sell_ratio * property.price
         property.owner = None
         if property.country in self.countries:
             self.countries.remove(property.country)
@@ -234,9 +218,10 @@ class Player:
     def print_player_status(self, on_property):
         print(f"| _____________{self.name}_____________")
         print(f"| {self.name} has {self.doubles_rolls} doubles rolls")
+        print(f"| {self.name} has ${self.money + self.properties_value} wealth")
         print(f"| {self.name} has ${self.money} money left")
-        print(f"| {self.name} has {self.properties} properties")
         print(f"| {self.name} has ${self.properties_value} properties value")
+        print(f"| {self.name} has {self.properties} properties")
         print(f"| {self.name} has {self.countries} countries")
         print(f"| {self.name} is on {self.position} position ({on_property[self.position].name})")
         print(f"| {self.name} is {'in' if self.jail else 'not in'} jail")
@@ -248,6 +233,7 @@ class Player:
         return ("\n" + "TYPE: " + str(type(self).__name__) + 
                 "\n" + "Name: " + str(self.name) + 
                 "\n" + "Money: " + str(self.money) + 
+                "\n" + "Wealth: " + str(self.money + self.properties_value) + 
                 "\n" + "Properties: " + str(self.properties) + 
                 "\n" + "Countries: " + str(self.countries) + 
                 "\n" + "Position: " + str(self.position) + 
@@ -425,6 +411,8 @@ class AI_Agent(Player):
                 raise Exception("Something went wrong in get_next_state function.")
         if outcome != None:
             current_player.move(int(outcome))
+        # Give turn to next player
+        new_state["current_player"] = new_state["players"][((new_state["turn_counter"]+1) % new_state["players_num"])]
 
         return new_state
 
@@ -445,7 +433,7 @@ def all_rolls():
         5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9
         6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36
         7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6
-            ...
+        ...
         11: (5+6) & (6+5)                                   = 1/18  
         12: (6+6)                                           = 1/36
     """

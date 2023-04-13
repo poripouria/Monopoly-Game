@@ -4,18 +4,41 @@ class Property:             # Cities and Places
         self.country = country
         self.type = type
         self.price = price
+        self.sell_ratio = 0.8
         self.rent = rent
         self.index = index
         self.owner = None
         self.is_upgrade = False
-        self.upgrade_time = 0
+        self.upgrade_level = 0
 
     def upgrade(self):      # Build Hotels and Apartments
         self.owner.money -= 0.5 * self.price
         self.price *= 1.5
         self.rent *= 1.5
         self.is_upgrade = True
-        self.upgrade_time += 1
+        self.upgrade_level += 1
+
+    def buy(self, player, properties):
+        player.properties.append(self)
+        player.properties_value += self.sell_ratio * self.price
+        player.money -= self.price
+        self.owner = player
+        if self.type == "city":
+            for i in range(40):
+                if properties[i].type == "city" and properties[i].country == self.country:
+                    if properties[i].owner != player or properties[i].owner is None:
+                        break
+            else:
+                player.countries.append(self.country)
+                print(f"{player.name} got all the cities in {self.country}!")
+        elif self.type == "service_centers":
+            for i in range(40):
+                if properties[i].type == "service_centers":
+                    if properties[i].owner != player or properties[i].owner is None:
+                        break
+            else:
+                player.countries.append("service_centers")
+                print(f"{player.name} got all service centers!")
 
     def print_property_status(self):
         print(f"| ________________{(self.index)}__________________")

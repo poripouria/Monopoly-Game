@@ -3,7 +3,7 @@ import numpy as np
 from Property import *
 
 class Monopoly():
-    def __init__(self, players, players_num=2, max_rounds=30, max_money=2500, AI_Agent_Mode=False):
+    def __init__(self, players, players_num=2, max_rounds=30, max_money=3000, AI_Agent_Mode=False):
         self.players = players
         self.properties = []
         self.players_num = players_num
@@ -11,27 +11,25 @@ class Monopoly():
         self.max_money = max_money
         self.AI_Agent_Mode = AI_Agent_Mode
         self.round = 0
+        self.turn_counter = -1
         self.current_player = None
         self.losers = []
         self.winner = None
-
+        
     def check_winner(self):
-        richest = None
-        richestmoney = -np.inf
-        for p in self.players:
-            if p.money == self.max_money:
-                self.winner = p
-            elif p.money > richestmoney:
-                richest = p
-                richestmoney = p.money
-        self.winner = richest
-        self.losers = self.players[:]
-        self.losers.remove(self.winner)
+        richest = max(self.players, key=lambda p: p.wealth)
+        if richest.wealth >= self.max_money:
+            self.winner = richest
+        else:
+            self.losers = sorted(self.players, key=lambda p: p.money, reverse=True)
+            self.winner = self.losers.pop(0)
 
     def game_state(self):
         state = {"properties": self.properties,
                  "players": self.players,
+                 "players_num": self.players_num,
                  "rounds_left": self.max_rounds - self.round,
+                 "turn_counter": self.turn_counter,
                  "current_player": self.current_player,
                  "winner": self.winner,
                  "max_money": self.max_money}
@@ -44,10 +42,10 @@ class Monopoly():
             print(f"PLAYERS ({self.players_num}):")     
             if self.round == 0:  
                 for i, p in enumerate(self.players):
-                    print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, type: {type(p).__name__}")
+                    print(f"Player: {i+1}, Name: {p.name}, Wealth: {p.wealth}, type: {type(p).__name__}")
             else:   
                 for i, p in enumerate(self.players):
-                    print(f"Player: {i+1}, Name: {p.name}, Money: {p.money}, Currently on: ({self.properties[p.position].name}:{p.position})", end=" ")
+                    print(f"Player: {i+1}, Name: {p.name}, Wealth: {p.wealth}, Currently on: ({self.properties[p.position].name}:{p.position})", end=" ")
                     if p == self.winner:
                         print("(WINNER TILL NOW)", end=" ")
                     print()
@@ -76,6 +74,7 @@ class Monopoly():
             for turn_counter in range(self.players_num):
                 # ----------------  Check Current Player  ---------------- #
                 current_player = self.players[turn_counter]
+                self.turn_counter = turn_counter
                 self.current_player = current_player
                 if current_player.is_bankrupt():
                     print(f"{current_player.name} is bankrupt!")
@@ -153,4 +152,15 @@ class Monopoly():
                                         property_country[i], 
                                         property_price[i], 
                                         property_rent[i], i))
+        self.properties = properties
+        
+    def init_board(self, df):
+        properties = []
+        for i in range(40):
+            properties.append(Property(df.iloc[i]["place"],
+                                       df.iloc[i]["type"],
+                                       df.iloc[i]["country"],
+                                       float(df.iloc[i]["price"]),
+                                       float(df.iloc[i]["rent"]),
+                                       i))
         self.properties = properties
