@@ -13,8 +13,8 @@ import pandas as  pd
 from Player import Player, AI_Agent
 from Monopoly import *
 
-try:
-    if __name__ == "__main__":
+if __name__ == "__main__":
+    try:
         # ----------------   defining players  ---------------- #
         players_num = int(input(f"Enter the number of players (2 - 3 - 4): "))
         if players_num in [2, 3, 4]:
@@ -37,5 +37,5 @@ try:
         Monopoly_Game.init_board(df)
         # ----------------        start        ---------------- #
         Monopoly_Game.start_game()
-except Exception as err :
-    print(err)
+    except Exception as err :
+        print(err)
