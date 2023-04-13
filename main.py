@@ -25,6 +25,8 @@ try:
                 if name == "AI":
                     AI_Mode = True    
                     players.append(AI_Agent(name + "_" + str(i+1)))
+                elif name in ["", " ", None]:
+                    raise Exception("Please enter a valid name!")
                 else:
                     players.append(Player(name))
         else:

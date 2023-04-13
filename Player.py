@@ -9,8 +9,9 @@ class Player:
         self.name = name
         self.appearance = appearance
         self.money = money
-        self.properties = []
         self.properties_value = 0
+        self.wealth = money
+        self.properties = []
         self.countries = []
         self.position = 0
         self.jail = False
@@ -70,10 +71,10 @@ class Player:
                     print(f"{self.name} went to jail.")
             elif properties[position].name == "Auction (Trade)":
                 #TODO_: After compliting auction function, add it here
-                p_index = input("Inter Index of property you wanna treade (Inter -1 to pass): ")
-                if p_index == -1:
+                prop_index = int(input("Inter Index of property you wanna treade (Inter -1 to pass): "))
+                if prop_index == -1:
                     print(f"{self.name} prefer not to trade.")
-                elif p_index in self.properties.index:
+                elif prop_index in self.properties.index:
                     pass
             elif properties[position].name == "Free Parking":
                 print(f"Enjoy your free parking {self.name}!")
@@ -82,13 +83,16 @@ class Player:
             elif properties[position].name == "Income Tax":
                 print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
                 self.money -= 0.1 * self.money
+                self.wealth = self.money + self.properties_value
             elif properties[position].name == "Luxury Tax":
                 self.money -= 200
                 print(f"{self.name} paied $200 to the bank for Luxury Tax!")
+                self.wealth = self.money + self.properties_value
             elif properties[position].name == "Treasure":
                 rand_mony = random.randint(5, 20)*10
                 print(f"{self.name} got ${rand_mony} from the bank!")
                 self.money += rand_mony
+                self.wealth = self.money + self.properties_value
             else:
                 raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
@@ -133,16 +137,18 @@ class Player:
     def move(self, steps):
         if self.position + steps >= 40:
             self.money += 200
+            self.wealth = self.money + self.properties_value
             print(f"{self.name} collected $200 from the bank for passing Go.")
             self.position = (self.position + steps) % 40
         else:
             self.position += steps
+        self.wealth = self.money + self.properties_value
             
     def chance(self, players):
         commands = [
             "Go to Jail for 2 rounds",
             "Pay $50 to all players",
-            "Give $20 from all players",
+            "Give $50 from all players",
             "Get 1 Jail-Free card",
             "Roll the dice again",
             # f"Travel to {random.choice()}",
@@ -166,11 +172,16 @@ class Player:
                 if player != self:
                     player.money += 50
                     self.money -= len(players) * 50 - 50
-        elif command == "Give $20 from all players":
+                    player.wealth = player.money + player.properties_value
+            self.wealth = self.money + self.properties_value
+
+        elif command == "Give $50 from all players":
             for player in players:
                 if player != self:
-                    player.money -= 20
-                    self.money += 20
+                    player.money -= 50
+                    self.money += 50
+                    player.wealth = player.money + player.properties_value
+            self.wealth = self.money + self.properties_value
         elif command == "Get 1 Jail-Free card":
             self.jail_cards += 1
         elif command == "Roll the dice again":
@@ -202,6 +213,7 @@ class Player:
         property.owner = None
         if property.country in self.countries:
             self.countries.remove(property.country)
+        self.wealth = self.money + self.properties_value
 
     def auction(self, property1, property2):
         pass
@@ -211,6 +223,7 @@ class Player:
         if property.owner and property.owner != self:
             self.money -= rent
             property.owner.money += rent
+        self.wealth = self.money + self.properties_value
 
     def is_bankrupt(self):
         return self.money < 0
@@ -218,7 +231,7 @@ class Player:
     def print_player_status(self, on_property):
         print(f"| _____________{self.name}_____________")
         print(f"| {self.name} has {self.doubles_rolls} doubles rolls")
-        print(f"| {self.name} has ${self.money + self.properties_value} wealth")
+        print(f"| {self.name} has ${self.wealth} wealth")
         print(f"| {self.name} has ${self.money} money left")
         print(f"| {self.name} has ${self.properties_value} properties value")
         print(f"| {self.name} has {self.properties} properties")
@@ -233,7 +246,7 @@ class Player:
         return ("\n" + "TYPE: " + str(type(self).__name__) + 
                 "\n" + "Name: " + str(self.name) + 
                 "\n" + "Money: " + str(self.money) + 
-                "\n" + "Wealth: " + str(self.money + self.properties_value) + 
+                "\n" + "Wealth: " + str(self.wealth) + 
                 "\n" + "Properties: " + str(self.properties) + 
                 "\n" + "Countries: " + str(self.countries) + 
                 "\n" + "Position: " + str(self.position) + 

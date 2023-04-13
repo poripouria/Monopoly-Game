@@ -162,5 +162,5 @@ class Monopoly():
                                        df.iloc[i]["country"],
                                        float(df.iloc[i]["price"]),
                                        float(df.iloc[i]["rent"]),
-                                       i))
+                                       int(i)))
         self.properties = properties

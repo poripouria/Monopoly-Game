@@ -17,10 +17,11 @@ class Property:             # Cities and Places
         self.rent *= 1.5
         self.is_upgrade = True
         self.upgrade_level += 1
+        self.owner.wealth = self.owner.money + self.owner.properties_value
 
     def buy(self, player, properties):
         player.properties.append(self)
-        player.properties_value += self.sell_ratio * self.price
+        player.properties_value += self.price
         player.money -= self.price
         self.owner = player
         if self.type == "city":
@@ -39,6 +40,7 @@ class Property:             # Cities and Places
             else:
                 player.countries.append("service_centers")
                 print(f"{player.name} got all service centers!")
+        player.wealth = player.money + player.properties_value
 
     def print_property_status(self):
         print(f"| ________________{(self.index)}__________________")
@@ -60,6 +62,6 @@ class Property:             # Cities and Places
 
     def __repr__(self):
         if self.owner:
-            return (str(self.name) + ": " + str(self.price) + ": " + str(self.rent))
+            return (str(self.name) + ": " + str(self.price))
         else:
-            return (str(self.name) + ": " + str(self.price) + ": " + str(self.rent))
+            return (str(self.name) + ": " + str(self.price))
