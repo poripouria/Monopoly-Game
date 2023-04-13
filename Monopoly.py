@@ -63,16 +63,22 @@ class Monopoly():
             raise Exception("Something went wrong in DISPLAYING GAME STATUS.")
         print()
 
+    def show_game_menu(self):
+        self.whattodo = input("*** GAME MENU \n" +
+                              "*** Inter \"c\" to continue \n" +
+                              "*** Inter \"g\" to see game status \n" +
+                              "*** Inter \"p\" to see properties status \n" +
+                              "*** Inter \"end\" to END this game: ")
+
+
     def start_game(self):
         # ----------------      start game    ---------------- #n
         random.shuffle(self.players)
         self.display_game_state()
-        self.whattodo = "c"
-        while self.round < self.max_rounds and self.whattodo != "end":
-            if self.whattodo == "g":
-                self.display_game_state()
-            elif self.whattodo == "p":
-                self.display_game_state("properties")
+        self.show_game_menu()
+        while self.round < self.max_rounds and self.whattodo != "end":          # End of game
+            if self.whattodo == "g": self.display_game_state()                  # Game status
+            elif self.whattodo == "p": self.display_game_state("properties")    # Properties status
             for turn_counter in range(self.players_num):
                 # ----------------  Check Current Player  ---------------- #
                 current_player = self.players[turn_counter]
@@ -120,11 +126,7 @@ class Monopoly():
             self.check_winner()
             print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
             self.round += 1
-            self.whattodo = input("*** GAME MENU \n" +
-                        "*** Inter \"c\" to continue \n" +
-                        "*** Inter \"g\" to see game status \n" +
-                        "*** Inter \"p\" to see properties status \n" +
-                        "*** Inter \"end\" to END this game: ")
+            self.show_game_menu()
         self.check_winner()
         print("\n", "Game END.")
         print(f"#### WINNER: {self.winner.name}")
