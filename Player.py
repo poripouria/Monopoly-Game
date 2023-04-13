@@ -3,6 +3,27 @@ import numpy as np
 from copy import deepcopy
 
 all_possible_actions = ["buy", "sell", "upgrade", "use_jail_card", "auction", "nothing_just_stay"]
+def all_rolls():
+    all_results = []
+    for i in range(2,13):
+        favorable = 0
+        for j in range(1,7):
+            if i-j >= 1 and i-j <= 6:
+                favorable += 1
+        probability = favorable / 36
+        all_results.append((i,probability))
+    """ returns all possible rolls and their probabilities
+
+        2 : (1+1)                                           = 1/36    --> (2, 1/36)
+        3 : (2+1) & (1+2)                                   = 1/18    --> (3, 1/18)
+        4 : (2+2) & (3+1) & (1+3)                           = 1/12    --> (4, 1/12)
+        5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9     --> (5, 1/9)
+        6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36    --> (6, 5/36)
+        7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6     --> (7, 1/6)
+        ...
+        11: (5+6) & (6+5)                                   = 1/18    --> (11, 1/18)
+        12: (6+6)                                           = 1/36    --> (12, 1/36) """
+    return all_results
 
 class Player:
     def __init__(self, name, appearance=None, money=1500):
@@ -31,7 +52,7 @@ class Player:
                 self.pay_rent(properties[position])
             elif properties[position].owner == None:
                 print(f"{self.name} can buy {properties[position].name} for ${properties[position].price}")
-                if input(f"Do you want to buy it (you have ${self.money})? (y/n) ") == "y":
+                if self.return_action("buying", state, position) == "buy":
                     self.buy_property(properties[position], properties)
                     if properties[position].owner == self:
                         print(f"{self.name} bought {properties[position].name}.")
@@ -40,13 +61,13 @@ class Player:
             elif properties[position].owner == self:
                 if self.money < 100:
                     print(f"ALARM: You have less than $100! Better to sell!")
-                if input(f"Do you want to sell {properties[position].name} for {0.8 * properties[position].price}? (y/n) ") == "y":
+                if self.return_action("selling", state, position) == "sell":
                     self.sell_property(properties[position], properties)
                     print(f"{self.name} soled {properties[position].name} for {0.8 * properties[position].price}.")
                 else:
                     print(f"{self.name} didn't sell {properties[position].name}.")
                 if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
-                    if input(f"Do you want to upgrade {properties[position].name} for {1.5 * properties[position].price}? (y/n) ") == "y":
+                    if self.return_action("upgrading", state, position) == "upgrade":
                         current_price = properties[position].price
                         self.upgrade_property(properties[position])
                         if properties[position].is_upgrade:
@@ -57,7 +78,7 @@ class Player:
             if properties[position].name == "Go (Collect $200)":
                 pass
             elif properties[position].name == "Jail":
-                if self.jail_cards > 0 and input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
+                if self.jail_cards > 0 and self.return_action("using_jail_card_jail", state) == "use_jail_card":
                     self.jail_cards -= 1
                     self.jail = False
                     print(f"{self.name} used a get out of jail free card.")
@@ -96,6 +117,33 @@ class Player:
             else:
                 raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
+    def return_action(self, mode, state, position=None):
+        properties = state["properties"]
+        players = state["players"]
+        if type(self).__name__ == "Player":
+            if mode == "buying":
+                if input(f"Do you want to buy {properties[position].name} (you have ${self.money})? (y/n) ") == "y":
+                    return all_possible_actions[0]
+            elif mode == "selling":
+                if input(f"Do you want to sell {properties[position].name} for {0.8 * properties[position].price}? (y/n) ") == "y":
+                    return all_possible_actions[1]
+            elif mode == "upgrading":
+                if input(f"Do you want to upgrade {properties[position].name} for {1.5 * properties[position].price}? (y/n) ") == "y":
+                    return all_possible_actions[2]
+            elif mode == "using_jail_card_jail":
+                if input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
+                    return all_possible_actions[3]
+            elif mode == "using_jail_card_dice":
+                if input(f"You rolled double more than 3 times (Jail Rule). Do you want to use your Jail-Free card? (y/n) ") == "y":
+                    return all_possible_actions[3]
+            elif mode == "trading":
+                #TODO_: After compliting auction function, add it here
+                pass
+        elif type(self).__name__ == "AI_Agent":
+            return self.make_decision(state)
+        else:
+            raise Exception("Something went wrong in return_action() function!")
+
     def roll_dices(self):
         d1 = random.randint(1, 6)
         d2 = random.randint(1, 6)
@@ -103,7 +151,7 @@ class Player:
         if d1 == d2:
             self.doubles_rolls += 1
             if self.doubles_rolls > 2:
-                if self.jail_cards > 0 and input(f"You rolled double more than 3 times (Jail Rule). Do you want to use your Jail-Free card? (y/n) ") == "y":
+                if self.jail_cards > 0 and self.return_action("using_jail_card_dice", state) == "use_jail_card":
                     self.jail_cards -= 1
                     self.jail = False
                     print(f"{self.name} used a get out of jail free card.")
@@ -111,7 +159,7 @@ class Player:
                     self.position = 9
                     self.jail = True
                     self.jail_turns += 1
-                    print(f"{self.name} went to jail becouse of 3 doubles rolls.")
+                    print(f"{self.name} went to jail becouse of 3 doubles rolls. ({d1}, {d2})")
                 self.doubles = False
                 self.doubles_rolls = 0
                 return
@@ -156,7 +204,10 @@ class Player:
         command = random.choice(commands)
         print("Command is: " + command)
         if command == "Go to Jail for 2 rounds":
-            if self.jail_cards > 0 and input(f"Do you want to use your Jail-Free card? (y/n) ") == "y":
+            if self.jail_cards > 1 and self.return_action("using_jail_card_jail", state) == "use_jail_card":
+                self.jail_cards -= 2
+                print(f"{self.name} used 2 get out of jail free card.")
+            elif self.jail_cards > 0 and self.return_action("using_jail_card_jail", state) == "use_jail_card":
                 self.jail_cards -= 1
                 self.position = 9
                 self.jail = True
@@ -195,14 +246,14 @@ class Player:
         if property.price < self.money:
             property.buy(self, properties)
         else:
-            print(f"{self.name} don't have enough money to buy it.") 
+            print(f"{self.name} don't have enough money to buy {property.name}.") 
 
     def upgrade_property(self, property):      # Build Hotels and Apartments
         if property.upgrade_time < 3:
             if property.price < 2 * self.money:
                 property.upgrade()
             else:
-                print(f"{self.name} don't have enough money to Build here.")
+                print(f"{self.name} don't have enough money to Build in and upgrade here in ({property.name}).")
         else:
             print(f"{property.name} couldn't UPGRADE anymore.")
 
@@ -262,70 +313,6 @@ class AI_Agent(Player):
     def __init__(self, name, depth=3, appearance=None, money=1500):
         super().__init__(name, appearance, money)
         self.depth = depth
-
-    def play(self, position, state):
-        properties = state["properties"]
-        players = state["players"]
-
-        if properties[position].type == "city" or properties[position].type == "service_centers":
-            if properties[position].owner != None and properties[position].owner != self:
-                print(f"{self.name} has to pay ${properties[position].rent} to {properties[position].owner.name}")
-                self.pay_rent(properties[position])
-            elif properties[position].owner == None:
-                print(f"{self.name} can buy {properties[position].name} for ${properties[position].price}")
-                if self.make_decision(state) == "buy":
-                    self.buy_property(properties[position], properties)
-                    print(f"{self.name} bought {properties[position].name}.")
-                else:
-                    print(f"{self.name} didn't buy {properties[position].name}.")
-            elif properties[position].owner == self:
-                if self.make_decision(state) == "sell":
-                    self.sell_properties[position](properties[position])
-                    print(f"{self.name} soled {properties[position].name} for {0.8 * properties[position].price}.")
-                else:
-                    print(f"{self.name} didn't sell {properties[position].name}.")
-                if (properties[position].type == "city" and properties[position].country in self.countries) or (properties[position].type == "service_centers" and "Service-Centers" in self.countries):
-                    if self.make_decision(state) == "upgrade":
-                        print(f"{self.name} upgraded {properties[position].name} for {0.5*properties[position].price}.")
-                        self.upgrade_property(properties[position])
-                    else:
-                        print(f"{self.name} didn't upgrade {properties[position].name}.")
-        if properties[position].type == "stay_place":
-            if properties[position].name == "Go (Collect $200)":
-                pass
-            elif properties[position].name == "Jail":
-                if self.jail_cards > 0 and self.make_decision(state) == "use_jail_card":
-                    self.jail_cards -= 1
-                    self.jail = False
-                    print(f"{self.name} used a get out of jail free card.")
-                else:
-                    if self.doubles:
-                        self.doubles = False
-                        self.doubles_rolls = 0
-                    self.position = 9
-                    self.jail = True
-                    self.jail_turns += 1
-                    print(f"{self.name} went to jail.")
-            elif properties[position].name == "Auction (Trade)":
-                #TODO_: After compliting auction function, add it here
-                print("Currently Auction (Trade) is not available!")
-                pass
-            elif properties[position].name == "Free Parking":
-                print(f"Enjoy your free parking {self.name}!")
-            elif properties[position].name == "Chance":
-                self.chance(players)
-            elif properties[position].name == "Income Tax":
-                print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
-                self.money -= 0.1 * self.money
-            elif properties[position].name == "Luxury Tax":
-                self.money -= 200
-                print(f"{self.name} paied $200 to the bank for Luxury Tax!")
-            elif properties[position].name == "Treasure":
-                rand_mony = random.randint(5, 20)*10
-                print(f"{self.name} got ${rand_mony} from the bank!")
-                self.money += rand_mony
-            else:
-                raise Exception("Something went wrong in STAY_PLACE POSITIONS.")
 
     def current_possible_actions(self, state):
         possible_actions = []
@@ -428,26 +415,3 @@ class AI_Agent(Player):
         new_state["current_player"] = new_state["players"][((new_state["turn_counter"]+1) % new_state["players_num"])]
 
         return new_state
-
-def all_rolls():
-    all_results = []
-
-    for i in range(2,13):
-        favorable = 0
-        for j in range(1,7):
-            if i-j >= 1 and i-j <= 6:
-                favorable += 1
-        probability = favorable / 36
-        all_results.append((i,probability))
-    """
-        2 : (1+1)                                           = 1/36
-        3 : (2+1) & (1+2)                                   = 1/18
-        4 : (2+2) & (3+1) & (1+3)                           = 1/12
-        5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9
-        6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36
-        7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6
-        ...
-        11: (5+6) & (6+5)                                   = 1/18  
-        12: (6+6)                                           = 1/36
-    """
-    return all_results
