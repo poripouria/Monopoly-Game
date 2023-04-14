@@ -108,7 +108,7 @@ class Player:
             elif properties[position].name == "Free Parking":
                 print(f"Enjoy your free parking {self.name}!")
             elif properties[position].name == "Chance":
-                self.chance(players)
+                self.chance(players, state)
             elif properties[position].name == "Income Tax":
                 print(f"{self.name} paied ${0.1 * self.money} to the bank for Income Tax!")
                 self.money -= 0.1 * self.money
@@ -200,7 +200,7 @@ class Player:
             self.position += steps
         self.wealth = self.money + self.properties_value
             
-    def chance(self, players):
+    def chance(self, players, state):
         commands = [
             "Go to Jail for 2 rounds",
             "Pay $50 to all players",
