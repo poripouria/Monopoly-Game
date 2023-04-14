@@ -1,3 +1,7 @@
+"""
+Description: Class for defining game board properties
+"""
+
 class Property:             # Cities and Places
     def __init__(self, name, type, country, price, rent, index):
         self.name = name

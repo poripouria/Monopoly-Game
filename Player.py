@@ -1,3 +1,7 @@
+"""
+Description: Class for defining game players and AI agent
+"""
+
 import random
 import numpy as np
 from copy import deepcopy

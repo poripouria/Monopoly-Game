@@ -8,7 +8,6 @@ Description:
 Student Name & ID: Pouria Alimoradpor 9912035
 """
 import random
-import numpy as np
 import pandas as  pd
 from Player import Player, AI_Agent
 from Monopoly import *

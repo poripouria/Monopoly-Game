@@ -1,5 +1,8 @@
+"""
+Description: Game board and rules
+"""
+
 import random
-import numpy as np
 from Property import *
 
 class Monopoly():
