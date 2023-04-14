@@ -138,31 +138,6 @@ class Monopoly():
         print(f"#### WINNER: {self.winner.name}")
         print(f"#### LOSERS: {self.losers}", "\n")
         return
-
-    def init_board(self, df):
-        property_place = []
-        for place_ in df["place"]:
-            property_place.append(place_)
-        property_type = []
-        for type_ in df["type"]:
-            property_type.append(type_)
-        property_country = []
-        for country_ in df["country"]:
-            property_country.append(country_)
-        property_price = []
-        for price_ in df["price"]:
-            property_price.append(float(price_))
-        property_rent = []
-        for rent_ in df["rent"]:
-            property_rent.append(float(rent_))
-        properties = []
-        for i in range(40):
-            properties.append(Property(property_place[i], 
-                                        property_type[i], 
-                                        property_country[i], 
-                                        property_price[i], 
-                                        property_rent[i], i))
-        self.properties = properties
         
     def init_board(self, df):
         properties = []

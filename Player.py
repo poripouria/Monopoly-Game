@@ -331,9 +331,9 @@ class AI_Agent(Player):
                 possible_actions.append(all_possible_actions[0]) # "buy"
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
             elif properties[self.position].owner == self:
+                possible_actions.append(all_possible_actions[1]) # "sell"
                 if (properties[self.position].type == "city" and properties[self.position].country in self.countries) or (properties[self.position].type == "service_centers" and "Service-Centers" in self.countries):
                     possible_actions.append(all_possible_actions[2]) # "upgrade"
-                possible_actions.append(all_possible_actions[1]) # "sell"
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
         if properties[self.position].type == "stay_place":
             if properties[self.position].name == "Jail":
@@ -417,7 +417,6 @@ class AI_Agent(Player):
 
     def evaluate_state(self, state):
         value = 10
-        """
         if state["current_player"].money > state["max_money"]*8/10:
             value = 100
         elif state["current_player"].money > state["max_money"]*6/10:
@@ -427,7 +426,6 @@ class AI_Agent(Player):
         elif state["current_player"].money < state["max_money"]/10 and state["rounds_left"] < 5:
             value = 0
         return value
-        """
 
 """
     def expectiminimax(self, state, depth):
