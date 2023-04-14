@@ -21,6 +21,7 @@ class Monopoly():
         richest = max(self.players, key=lambda p: p.wealth)
         if richest.wealth >= self.max_money:
             self.winner = richest
+            print(f"{self.winner.name} is the winner with {self.winner.wealth} wealth!")
             self.whattodo = "end"
         else:
             self.losers = sorted(self.players, key=lambda p: (p.wealth, p.money), reverse=True)
@@ -93,7 +94,8 @@ class Monopoly():
                     self.players.remove(current_player)
                 if self.players_num == 1:
                     self.winner = self.players[0]
-                    print()
+                    self.display_game_state()
+                    print("\n", "ALL OTHER PLAYERS ARE BANKRUPT!")
                     print(f"#### WINNER: {self.winner.name}")
                     print(f"#### LOSERS: {self.losers}")
                     return
@@ -128,6 +130,7 @@ class Monopoly():
             self.round += 1
             self.show_game_menu()
         self.check_winner()
+        self.display_game_state()
         print("\n", "Game END.")
         print(f"#### WINNER: {self.winner.name}")
         print(f"#### LOSERS: {self.losers}", "\n")

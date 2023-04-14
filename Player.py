@@ -279,6 +279,7 @@ class Player:
             self.money -= rent
             property.owner.money += rent
         self.wealth = self.money + self.properties_value
+        property.owner.wealth = property.owner.money + property.owner.properties_value
 
     def is_bankrupt(self):
         return self.money < 0
