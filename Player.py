@@ -417,17 +417,17 @@ class AI_Agent(Player):
 
     def evaluate_state(self, state):
         value = 10
-        current_player = state["current_player"]
-        
-        if current_player.money > state["max_money"]*8/10:
+        """
+        if state["current_player"].money > state["max_money"]*8/10:
             value = 100
-        elif current_player.money > state["max_money"]*6/10:
+        elif state["current_player"].money > state["max_money"]*6/10:
             value = 75
-        elif current_player.money > state["max_money"]*4/10:
+        elif state["current_player"].money > state["max_money"]*4/10:
             value = 50
-        elif current_player.money < state["max_money"]/10 and state["rounds_left"] < 5:
+        elif state["current_player"].money < state["max_money"]/10 and state["rounds_left"] < 5:
             value = 0
         return value
+        """
 
 """
     def expectiminimax(self, state, depth):

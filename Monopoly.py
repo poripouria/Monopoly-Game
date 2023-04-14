@@ -90,8 +90,8 @@ class Monopoly():
                 self.current_player = current_player
                 if current_player.is_bankrupt():
                     print(f"{current_player.name} is bankrupt!")
-                    for i in current_player.properties:
-                        self.properties[i].owner = None
+                    for p in current_player.properties:
+                       p.owner = None
                     self.players_num -= 1
                     self.losers.append(current_player)
                     self.players.remove(current_player)
