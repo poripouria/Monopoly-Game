@@ -4,26 +4,27 @@ from copy import deepcopy
 
 all_possible_actions = ["buy", "sell", "upgrade", "use_jail_card", "auction", "nothing_just_stay"]
 def all_rolls():
-    all_results = []
+    all_results = {}
     for i in range(2,13):
         favorable = 0
         for j in range(1,7):
             if i-j >= 1 and i-j <= 6:
                 favorable += 1
         probability = favorable / 36
-        all_results.append((i,probability))
+        all_results[i] = probability
     """ returns all possible rolls and their probabilities
-
-        2 : (1+1)                                           = 1/36    --> (2, 1/36)
-        3 : (2+1) & (1+2)                                   = 1/18    --> (3, 1/18)
-        4 : (2+2) & (3+1) & (1+3)                           = 1/12    --> (4, 1/12)
-        5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9     --> (5, 1/9)
-        6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36    --> (6, 5/36)
-        7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6     --> (7, 1/6)
+        2 : (1+1)                                           = 1/36    --> (2: 1/36)
+        3 : (2+1) & (1+2)                                   = 1/18    --> (3: 1/18)
+        4 : (2+2) & (3+1) & (1+3)                           = 1/12    --> (4: 1/12)
+        5 : (2+3) & (3+2) & (4+1) & (1+4)                   = 1/9     --> (5: 1/9)
+        6 : (1+5) & (2+4) & (3+3) & (4+2) & (5+1)           = 5/36    --> (6: 5/36)
+        7 : (1+6) & (2+5) & (3+4) & (4+3) & (5+2) & (6+1)   = 1/6     --> (7: 1/6)
         ...
-        11: (5+6) & (6+5)                                   = 1/18    --> (11, 1/18)
-        12: (6+6)                                           = 1/36    --> (12, 1/36) """
+        11: (5+6) & (6+5)                                   = 1/18    --> (11: 1/18)
+        12: (6+6)                                           = 1/36    --> (12: 1/36) 
+    """
     return all_results
+
 
 class Player:
     def __init__(self, name, appearance=None, money=1500):
@@ -62,7 +63,7 @@ class Player:
                 if self.money < 100:
                     print(f"ALARM: You have less than $100! Better to sell!")
                 if self.return_action("selling", state, position) == "sell":
-                    self.sell_property(properties[position], properties)
+                    self.sell_property(properties[position])
                     print(f"{self.name} soled {properties[position].name} for {0.8 * properties[position].price}.")
                 else:
                     print(f"{self.name} didn't sell {properties[position].name}.")
@@ -313,7 +314,7 @@ class Player:
         return (str(self.name))
 
 class AI_Agent(Player):
-    def __init__(self, name, depth=3, appearance=None, money=1500):
+    def __init__(self, name, depth=2, appearance=None, money=1500):
         super().__init__(name, appearance, money)
         self.depth = depth
 
@@ -325,10 +326,10 @@ class AI_Agent(Player):
                 possible_actions.append(all_possible_actions[0]) # "buy"
                 possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
             elif properties[self.position].owner == self:
-                possible_actions.append(all_possible_actions[1]) # "sell"
-                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
                 if (properties[self.position].type == "city" and properties[self.position].country in self.countries) or (properties[self.position].type == "service_centers" and "Service-Centers" in self.countries):
                     possible_actions.append(all_possible_actions[2]) # "upgrade"
+                possible_actions.append(all_possible_actions[1]) # "sell"
+                possible_actions.append(all_possible_actions[5]) # "nothing_just_stay"
         if properties[self.position].type == "stay_place":
             if properties[self.position].name == "Jail":
                 possible_actions.append(all_possible_actions[3]) # "use_jail_card"
@@ -340,25 +341,14 @@ class AI_Agent(Player):
 
     def make_decision(self, state):
         actions = self.current_possible_actions(state)
-        
-        action_values = []
-        for action in actions:
-            new_state = self.get_next_state(state, action=action)
-            value = self.expectiminimax(new_state, self.depth)
-            action_values.append((action, value))
-            
-        sorted_actions = sorted(action_values, key=lambda x: x[1], reverse=True)
-        best_action = sorted_actions[0][0]
-
+        best_action = max(actions, key=lambda action: self.expectiminimax(self.get_next_state(state, action=action), self.depth))
         return best_action
 
     def expectiminimax(self, state, depth):
         if state["rounds_left"] == 0 or depth == 0:
             return self.evaluate_state(state)
 
-        # check if it's the AI Agent's turn
         if state["current_player"] == self:
-            # maximize the expected value
             max_value = -np.inf
             actions = self.current_possible_actions(state)
             for action in actions:
@@ -366,19 +356,17 @@ class AI_Agent(Player):
                 value = self.expectiminimax(new_state, depth-1)
                 max_value = max(max_value, value)
             return max_value
-        # check if it's the Minimum player's turn
-        elif state["current_player"] != self:
-            # minimize the expected value
+        elif state["current_player"] in state["players"][:state["players_num"]-1]:
             min_value = np.inf
-            actions = self.current_possible_actions(state)
-            for action in actions:
-                new_state = self.get_next_state(state, action=action)
-                value = self.expectiminimax(new_state, depth-1)
-                min_value = min(min_value, value)
+            for player in state["players"]:
+                if player != state["current_player"]:
+                    actions = player.current_possible_actions(state)
+                    for action in actions:
+                        new_state = self.get_next_state(state, action=action)
+                        value = self.expectiminimax(new_state, depth-1)
+                        min_value = min(min_value, value)
             return min_value
-        # otherwise, it's the chance player's turn
         else:
-            # calculate the expected value
             total_value = 0
             probabilities = all_rolls()
             for outcome, probability in probabilities.items():
@@ -387,9 +375,86 @@ class AI_Agent(Player):
                 total_value += value * probability
             return total_value
 
+
+    def get_next_state(self, state, action=None, outcome=None):
+        new_state = deepcopy(state)
+        current_player = new_state["current_player"]
+        properties = new_state["properties"]
+
+        if action is not None:
+            if action == "buy":
+                current_player.buy_property(properties[current_player.position], properties)
+            elif action == "sell":
+                current_player.sell_property(properties[current_player.position])
+            elif action == "upgrade":
+                current_player.upgrade_property(properties[current_player.position])
+            elif action == "use_jail_card":
+                current_player.jail_cards -= 1
+                current_player.jail = False
+            elif action == "auction":
+                #TODO_: After compliting auction function, add it here
+                pass
+            elif action == "nothing_just_stay":
+                pass
+            else:
+                raise Exception("Something went wrong in get_next_state function.")
+        if outcome is not None:
+            current_player.move(int(outcome))
+        if new_state["turn_counter"] == new_state["players_num"]-1:
+            new_state["turn_counter"] += 1
+            new_state["rounds_left"] -= 1
+            new_state["current_player"] = new_state["players"][0]
+            new_state["players"] = new_state["players"][1:]+[current_player]
+        else:
+            new_state["current_player"] = new_state["players"][(new_state["turn_counter"]+1) % new_state["players_num"]]
+
+        return new_state
+
     def evaluate_state(self, state):
         value = 10
+        current_player = state["current_player"]
+        
+        if current_player.money > state["max_money"]*8/10:
+            value = 100
+        elif current_player.money > state["max_money"]*6/10:
+            value = 75
+        elif current_player.money > state["max_money"]*4/10:
+            value = 50
+        elif current_player.money < state["max_money"]/10 and state["rounds_left"] < 5:
+            value = 0
         return value
+
+"""
+    def expectiminimax(self, state, depth):
+        if state["rounds_left"] == 0 or depth == 0:
+            return self.evaluate_state(state)
+
+        # check if it's the AI Agent's turn (maximize the expected value)
+        if state["current_player"] == self:
+            max_value = -np.inf
+            actions = self.current_possible_actions(state)
+            for action in actions:
+                new_state = self.get_next_state(state, action=action)
+                value = self.expectiminimax(new_state, depth-1)
+                max_value = max(max_value, value)
+            return max_value
+        # check if it's the Minimum player's turn (minimize the expected value)
+        elif state["current_player"] != self:
+            min_value = np.inf
+            actions = self.current_possible_actions(state)
+            for action in actions:
+                new_state = self.get_next_state(state, action=action)
+                value = self.expectiminimax(new_state, depth-1)
+                min_value = min(min_value, value)
+            return min_value
+        # otherwise, it's the chance player's turn (calculate the expected value)
+        total_value = 0
+        probabilities = all_rolls()
+        for outcome, probability in probabilities.items():
+            new_state = self.get_next_state(state, outcome=outcome)
+            value = self.expectiminimax(new_state, depth-1)
+            total_value += value * probability
+        return total_value
 
     def get_next_state(self, state, action=None, outcome=None):
         new_state = deepcopy(state)
@@ -418,3 +483,8 @@ class AI_Agent(Player):
         new_state["current_player"] = new_state["players"][((new_state["turn_counter"]+1) % new_state["players_num"])]
 
         return new_state
+
+    def evaluate_state(self, state):
+        value = 0
+        return value
+"""
