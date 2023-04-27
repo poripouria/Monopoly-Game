@@ -19,6 +19,81 @@ class Monopoly():
         self.losers = []
         self.winner = None
         self.whattodo = "c"
+
+    def init_board(self, df):
+        properties = []
+        for i in range(40):
+            properties.append(Property(df.iloc[i]["place"],
+                                       df.iloc[i]["type"],
+                                       df.iloc[i]["country"],
+                                       float(df.iloc[i]["price"]),
+                                       float(df.iloc[i]["rent"]),
+                                       int(i)))
+        self.properties = properties
+
+    def start_game(self):
+        # ----------------      start game    ---------------- #
+        random.shuffle(self.players)
+        self.display_game_state()
+        self.show_game_menu()
+        while self.round < self.max_rounds and self.whattodo != "end":          # End of game
+            if self.whattodo == "g": self.display_game_state()                  # Game status
+            elif self.whattodo == "p": self.display_game_state("properties")    # Properties status
+            for turn_counter in range(self.players_num):
+                # ----------------  Check Current Player  ---------------- #
+                current_player = self.players[turn_counter]
+                self.turn_counter = turn_counter
+                self.current_player = current_player
+                if current_player.is_bankrupt():
+                    print(f"{current_player.name} is bankrupt!")
+                    for p in current_player.properties:
+                       p.owner = None
+                    self.players_num -= 1
+                    self.losers.append(current_player)
+                    self.players.remove(current_player)
+                if self.players_num == 1:
+                    self.winner = self.players[0]
+                    self.display_game_state()
+                    print("\n", "ALL OTHER PLAYERS ARE BANKRUPT!")
+                    print(f"#### WINNER: {self.winner.name}")
+                    print(f"#### LOSERS: {self.losers}")
+                    return
+                if current_player.jail and current_player.jail_turns > 0:
+                    current_player.doubles = False
+                    current_player.doubles_rolls = 0
+                    current_player.jail_turns -= 1
+                    print(f"\n{current_player.name} is in JAIL and can't roll dices.")
+                    if current_player.jail_turns == 0:
+                        current_player.jail = False
+                    continue
+                print(f"\n{current_player.name}'s turn")
+                for i in range(4):
+                    # ----------------     Roll Dices    ---------------- #
+                    if type(current_player).__name__ == "Player":
+                        input("*** Press Inter to ROLL DICES.")
+                    current_player.roll_dices()
+                    print(f"{current_player.name} is on {self.properties[current_player.position].name}.")
+                    # ----------------  Players Decision ---------------- #
+                    if type(current_player).__name__ == "AI_Agent":
+                        current_player.play(current_player.position, self.game_state())
+                    if type(current_player).__name__ == "Player":
+                        current_player.play(current_player.position, self.game_state())
+                    # ---------------- Show Players Status  ---------------- #
+                    print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
+                    self.display_game_state("players")
+                    if not current_player.doubles:
+                        break
+            # ----------------    Show Game State    ---------------- #
+            self.check_winner()
+            print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
+            self.round += 1
+            self.show_game_menu()
+        self.check_winner()
+        self.display_game_state()
+        print("\n", "Game END.")
+        print(f"#### WINNER: {self.winner.name}")
+        print(f"#### LOSERS: {self.losers}", "\n")
+        return
         
     def check_winner(self):
         richest = max(self.players, key=lambda p: p.wealth)
@@ -72,80 +147,4 @@ class Monopoly():
                               "*** Inter \"c\" to continue \n" +
                               "*** Inter \"g\" to see game status \n" +
                               "*** Inter \"p\" to see properties status \n" +
-                              "*** Inter \"end\" to END this game: ")
-
-
-    def start_game(self):
-        # ----------------      start game    ---------------- #n
-        random.shuffle(self.players)
-        self.display_game_state()
-        self.show_game_menu()
-        while self.round < self.max_rounds and self.whattodo != "end":          # End of game
-            if self.whattodo == "g": self.display_game_state()                  # Game status
-            elif self.whattodo == "p": self.display_game_state("properties")    # Properties status
-            for turn_counter in range(self.players_num):
-                # ----------------  Check Current Player  ---------------- #
-                current_player = self.players[turn_counter]
-                self.turn_counter = turn_counter
-                self.current_player = current_player
-                if current_player.is_bankrupt():
-                    print(f"{current_player.name} is bankrupt!")
-                    for p in current_player.properties:
-                       p.owner = None
-                    self.players_num -= 1
-                    self.losers.append(current_player)
-                    self.players.remove(current_player)
-                if self.players_num == 1:
-                    self.winner = self.players[0]
-                    self.display_game_state()
-                    print("\n", "ALL OTHER PLAYERS ARE BANKRUPT!")
-                    print(f"#### WINNER: {self.winner.name}")
-                    print(f"#### LOSERS: {self.losers}")
-                    return
-                if current_player.jail and current_player.jail_turns > 0:
-                    current_player.doubles = False
-                    current_player.doubles_rolls = 0
-                    current_player.jail_turns -= 1
-                    print(f"\n{current_player.name} is in JAIL and can't roll dices.")
-                    if current_player.jail_turns == 0:
-                        current_player.jail = False
-                    continue
-                print(f"\n{current_player.name}'s turn")
-                for i in range(4):
-                    # ----------------     Roll Dices    ---------------- #
-                    if type(current_player).__name__ == "Player":
-                        input("*** Press Inter to ROLL DICES.")
-                    current_player.roll_dices()
-                    print(f"{current_player.name} is on {self.properties[current_player.position].name}")
-                    # ----------------  Players Decision ---------------- #
-                    if type(current_player).__name__ == "AI_Agent":
-                        current_player.play(current_player.position, self.game_state())
-                    if type(current_player).__name__ == "Player":
-                        current_player.play(current_player.position, self.game_state())
-                    # ---------------- Show Players Status  ---------------- #
-                    print(" _________________________ GAME STATUS TILL NOW: _________________________ ")
-                    self.display_game_state("players")
-                    if not current_player.doubles:
-                        break
-            # ----------------    Show Game State    ---------------- #
-            self.check_winner()
-            print(f"\n--------------- ROUND {self.round+1} / {self.max_rounds} END ---------------\n")
-            self.round += 1
-            self.show_game_menu()
-        self.check_winner()
-        self.display_game_state()
-        print("\n", "Game END.")
-        print(f"#### WINNER: {self.winner.name}")
-        print(f"#### LOSERS: {self.losers}", "\n")
-        return
-        
-    def init_board(self, df):
-        properties = []
-        for i in range(40):
-            properties.append(Property(df.iloc[i]["place"],
-                                       df.iloc[i]["type"],
-                                       df.iloc[i]["country"],
-                                       float(df.iloc[i]["price"]),
-                                       float(df.iloc[i]["rent"]),
-                                       int(i)))
-        self.properties = properties
+                              "*** Inter \"end\" to END this game: ")    
